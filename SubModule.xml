@@ -1,0 +1,26 @@
+﻿<Module>
+  <Name value="ATO Troop Formation AI"/>
+  <Id value="ATOTroopFormationAI"/>
+  <Version value="v3.5.0"/>
+  <SingleplayerModule value="true"/>
+  <MultiplayerModule value="false"/>
+  <DependedModules>
+    <DependedModule Id="Native" DependentVersion="v1.0.0" Optional="false"/>
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.0.0" Optional="false"/>
+    <DependedModule Id="Sandbox" DependentVersion="v1.0.0" Optional="false"/>
+    <DependedModule Id="StoryMode" DependentVersion="v1.0.0" Optional="false"/>
+    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v1.0.0" Optional="false"/>
+    <DependedModule Id="StandardizedAndBuffedTroops" Optional="true"/>
+  </DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="std_RBM_AI"/>
+      <DLLName value="RBM.dll"/>
+      <SubModuleClassType value="RBM.SubModule"/>
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

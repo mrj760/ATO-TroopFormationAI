@@ -36,7 +36,7 @@ namespace RBMAI.AiModule
         {
             [HarmonyPrefix]
             [HarmonyPatch("CarryOutDefense")]
-            static bool PrefixCarryOutDefense(ref TacticDefendCastle __instance, ref bool doRangedJoinMelee)
+            static bool PrefixCarryOutDefense(ref TacticDefendCastle __instance, ref bool doRangedJoinMelee, ref Team ___team)
             {
                 if (Mission.Current.Mode != MissionMode.Deployment)
                 {
@@ -49,7 +49,7 @@ namespace RBMAI.AiModule
                     //    }
                     //}
                     //if (archerFormations.Count > 1)
-                    //{Team ___team
+                    //{
                     //    foreach (Formation archerFormation in archerFormations.ToList())
                     //    {
                     //        archerFormation.AI.ResetBehaviorWeights();
@@ -99,14 +99,14 @@ namespace RBMAI.AiModule
 
             [HarmonyPrefix]
             [HarmonyPatch("ArcherShiftAround")]
-            static bool PrefixArcherShiftAround(ref TacticDefendCastle __instance)
+            static bool PrefixArcherShiftAround(ref TacticDefendCastle __instance, ref Team ___team)
             {
                 if (Mission.Current.Mode != MissionMode.Deployment)
                 {
                     bool archersShiftAroundEnabledOut;
-                    if (!archersShiftAroundEnabled.TryGetValue(__instance.Team, out archersShiftAroundEnabledOut))
+                    if (!archersShiftAroundEnabled.TryGetValue(___team, out archersShiftAroundEnabledOut))
                     {
-                        archersShiftAroundEnabled[__instance.Team] = false;
+                        archersShiftAroundEnabled[___team] = false;
                         return true;
                     }
                     else
@@ -190,24 +190,24 @@ namespace RBMAI.AiModule
                 {
                     case BehaviorState.ClimbWall:
                         {
-                            //if (__instance.Formation != null && __instance.Formation.QuerySystem.MedianPosition.AsVec2.Distance(____wallSegmentMoveOrder.GetPosition(__instance.Formation)) > 60f)
-                            //{
-                            //    ____currentOrder = ____wallSegmentMoveOrder;
-                            //    break;
-                            //}
-                            //if (__instance.Formation != null)
-                            //{
-                            //    Formation enemyFormation = RBMAI.Utilities.FindSignificantEnemy(__instance.Formation, true, false, false, false, false, false);
-                            //    if (enemyFormation != null)
-                            //    {
-                            //        ____currentOrder = MovementOrder.MovementOrderChargeToTarget(enemyFormation);
-                            //        break;
-                            //    }
-                            //}
-                            //if (__instance.Formation != null && __instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null)
-                            //{
-                            //    ____currentOrder = MovementOrder.MovementOrderChargeToTarget(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation);
-                            //}
+                            if (__instance.Formation != null && __instance.Formation.QuerySystem.MedianPosition.AsVec2.Distance(____wallSegmentMoveOrder.GetPosition(__instance.Formation)) > 60f)
+                            {
+                                ____currentOrder = ____wallSegmentMoveOrder;
+                                break;
+                            }
+                            if (__instance.Formation != null)
+                            {
+                                Formation enemyFormation = RBMAI.Utilities.FindSignificantEnemy(__instance.Formation, true, false, false, false, false, false);
+                                if (enemyFormation != null)
+                                {
+                                    ____currentOrder = MovementOrder.MovementOrderChargeToTarget(enemyFormation);
+                                    break;
+                                }
+                            }
+                            if (__instance.Formation != null && __instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null)
+                            {
+                                ____currentOrder = MovementOrder.MovementOrderChargeToTarget(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation);
+                            }
                             break;
                         }
                     case BehaviorState.AttackEntity:
@@ -262,17 +262,17 @@ namespace RBMAI.AiModule
         }
 
 
-        ////[HarmonyPatch(typeof(AttackEntityOrderDetachment))]
-        ////class OverrideAttackEntityOrderDetachment
-        ////{
+        //[HarmonyPatch(typeof(AttackEntityOrderDetachment))]
+        //class OverrideAttackEntityOrderDetachment
+        //{
 
-        ////    [HarmonyPostfix]
-        ////    [HarmonyPatch("Initialize")]
-        ////    static void PostfixInitialize(ref BattleSideEnum managedSide, Vec3 managedDirection, ref float queueBeginDistance, ref int ____maxUserCount, ref float ____agentSpacing, ref float ____queueBeginDistance, ref float ____queueRowSize, ref float ____costPerRow, ref float ____baseCost)
-        ////    {
+        //    [HarmonyPostfix]
+        //    [HarmonyPatch("Initialize")]
+        //    static void PostfixInitialize(ref BattleSideEnum managedSide, Vec3 managedDirection, ref float queueBeginDistance, ref int ____maxUserCount, ref float ____agentSpacing, ref float ____queueBeginDistance, ref float ____queueRowSize, ref float ____costPerRow, ref float ____baseCost)
+        //    {
 
-        ////    }
-        ////}
+        //    }
+        //}
 
         [HarmonyPatch(typeof(BehaviorShootFromCastleWalls))]
         class OverrideBehaviorShootFromCastleWalls
@@ -335,7 +335,7 @@ namespace RBMAI.AiModule
             }
         }
 
-        //[HarmonyPatch(typeof(BehaviorWaitForLadders))]
+        [HarmonyPatch(typeof(BehaviorWaitForLadders))]
         class OverrideBehaviorWaitForLadders
         {
             [HarmonyPrefix]
@@ -405,8 +405,8 @@ namespace RBMAI.AiModule
             }
 
             [HarmonyPrefix]
-            [HarmonyPatch("CalculateCurrentOrder")]
-            static bool PrefixCalculateCurrentOrder(ref BehaviorDefendCastleKeyPosition __instance, ref FacingOrder ____waitFacingOrder, ref FacingOrder ____readyFacingOrder, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder, FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
+            [HarmonyPatch("ResetOrderPositions")]
+            static bool PrefixResetOrderPositions(ref BehaviorDefendCastleKeyPosition __instance, ref FacingOrder ____waitFacingOrder, ref FacingOrder ____readyFacingOrder, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder, FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
             {
                 ____behaviorSide = __instance.Formation.AI.Side;
                 ____innerGate = null;
@@ -507,7 +507,13 @@ namespace RBMAI.AiModule
 
                 ____currentOrder = ((____behaviorState == BehaviorState.Ready) ? ____readyOrder : ____waitOrder);
                 ___CurrentFacingOrder = ((__instance.Formation.QuerySystem.ClosestEnemyFormation != null && TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation.QuerySystem.ClosestEnemyFormation.Formation, includeOnlyPositionedUnits: true)) ? FacingOrder.FacingOrderLookAtEnemy : ((____behaviorState == BehaviorState.Ready) ? ____readyFacingOrder : ____waitFacingOrder));
+                return false;
+            }
 
+            [HarmonyPostfix]
+            [HarmonyPatch("ResetOrderPositions")]
+            static void PostfixResetOrderPositions(ref BehaviorDefendCastleKeyPosition __instance, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
+            {
                 ____laddersOnThisSide.Clear();
                 if (____tacticalMiddlePos != null)
                 {
@@ -580,152 +586,72 @@ namespace RBMAI.AiModule
                         ____currentOrder = ____readyOrder;
                     }
                 }
-
-                return true;
             }
 
-            //[HarmonyPostfix]
-            //[HarmonyPatch("ResetOrderPositions")]
-            //static void PostfixResetOrderPositions(ref BehaviorDefendCastleKeyPosition __instance, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
-            //{
-            //    ____laddersOnThisSide.Clear();
-            //    if (____tacticalMiddlePos != null)
-            //    {
-            //        if (__instance.Formation != null && __instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null)
-            //        {
-            //            if (____innerGate == null)
-            //            {
-            //                if (____outerGate != null)
-            //                {
-            //                    float distance = __instance.Formation.SmoothedAverageUnitPosition.Distance(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation.SmoothedAverageUnitPosition);
-            //                    if ((____outerGate.IsDestroyed || ____outerGate.IsGateOpen) && (TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation, includeOnlyPositionedUnits: false, 0.25f) && distance < 35f ||
-            //                    TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation, includeOnlyPositionedUnits: false, 0.2f)))
-            //                    {
-            //                        ____readyOrder = MovementOrder.MovementOrderChargeToTarget(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation);
-            //                        ____currentOrder = ____readyOrder;
-            //                    }
-            //                }
-            //            }
-            //            else
-            //            {
-            //                float distance = __instance.Formation.SmoothedAverageUnitPosition.Distance(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation.SmoothedAverageUnitPosition);
-            //                if ((____innerGate.IsDestroyed || ____innerGate.IsGateOpen) && (TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation, includeOnlyPositionedUnits: false, 0.25f) && distance < 35f ||
-            //                    TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation, includeOnlyPositionedUnits: false, 0.2f)))
-            //                {
-            //                    ____readyOrder = MovementOrder.MovementOrderChargeToTarget(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation);
-            //                    ____currentOrder = ____readyOrder;
-            //                }
-            //            }
-            //        }
+            [HarmonyPrefix]
+            [HarmonyPatch("TickOccasionally")]
+            static bool PrefixTickOccasionally(ref FacingOrder ____readyFacingOrder, ref FacingOrder ____waitFacingOrder, ref BehaviorDefendCastleKeyPosition __instance, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder, FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
+            {
+                IEnumerable<SiegeWeapon> source = from sw in Mission.Current.ActiveMissionObjects.FindAllWithType<SiegeWeapon>()
+                                                  where sw is IPrimarySiegeWeapon && (((sw as IPrimarySiegeWeapon).WeaponSide == FormationAI.BehaviorSide.Middle && !(sw as IPrimarySiegeWeapon).HoldLadders) || (sw as IPrimarySiegeWeapon).WeaponSide != FormationAI.BehaviorSide.Middle && (sw as IPrimarySiegeWeapon).SendLadders)
+                                                  //where sw is IPrimarySiegeWeapon
+                                                  select sw;
 
+                BehaviorState BehaviorState = ____teamAISiegeDefender == null || !source.Any() ? BehaviorState.Waiting : BehaviorState.Ready;
+                if (BehaviorState != ____behaviorState)
+                {
+                    ____behaviorState = BehaviorState;
+                    ____currentOrder = ((____behaviorState == BehaviorState.Ready) ? ____readyOrder : ____waitOrder);
+                    ___CurrentFacingOrder = ((____behaviorState == BehaviorState.Ready) ? ____readyFacingOrder : ____waitFacingOrder);
+                }
+                if (Mission.Current.MissionTeamAIType == Mission.MissionTeamAITypeEnum.Siege)
+                {
+                    if (____outerGate != null && ____outerGate.State == CastleGate.GateState.Open && !____outerGate.IsDestroyed)
+                    {
+                        if (!____outerGate.IsUsedByFormation(__instance.Formation))
+                        {
+                            __instance.Formation.StartUsingMachine(____outerGate);
+                        }
+                    }
+                    else if (____innerGate != null && ____innerGate.State == CastleGate.GateState.Open && !____innerGate.IsDestroyed && !____innerGate.IsUsedByFormation(__instance.Formation))
+                    {
+                        __instance.Formation.StartUsingMachine(____innerGate);
+                    }
+                }
 
-            //        if (____innerGate != null && !____innerGate.IsDestroyed)
-            //        {
-            //            WorldPosition position = ____tacticalMiddlePos.Position;
-            //            if (____behaviorState == BehaviorState.Ready)
-            //            {
-            //                Vec2 direction = (____innerGate.GetPosition().AsVec2 - __instance.Formation.QuerySystem.MedianPosition.AsVec2).Normalized();
-            //                WorldPosition newPosition = position;
-            //                newPosition.SetVec2(position.AsVec2 - direction * 2f);
-            //                ____readyOrder = MovementOrder.MovementOrderMove(newPosition);
-            //                ____currentOrder = ____readyOrder;
-            //            }
-            //        }
-            //    }
+                MethodInfo method = typeof(BehaviorDefendCastleKeyPosition).GetMethod("CalculateCurrentOrder", BindingFlags.NonPublic | BindingFlags.Instance);
+                method.DeclaringType.GetMethod("CalculateCurrentOrder");
+                method.Invoke(__instance, new object[] { });
 
-            //    if (__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null && ____tacticalMiddlePos != null && ____innerGate == null && ____outerGate == null)
-            //    {
-            //        WorldPosition position = ____tacticalMiddlePos.Position;
-            //        Formation correctEnemy = RBMAI.Utilities.FindSignificantEnemyToPosition(__instance.Formation, position, true, false, false, false, false, true);
-            //        if (correctEnemy != null)
-            //        {
-            //            float distance = __instance.Formation.QuerySystem.MedianPosition.AsVec2.Distance(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation.QuerySystem.MedianPosition.AsVec2);
-            //            if (TeamAISiegeComponent.IsFormationInsideCastle(correctEnemy, includeOnlyPositionedUnits: false, 0.2f) || (TeamAISiegeComponent.IsFormationInsideCastle(correctEnemy, includeOnlyPositionedUnits: false, 0.05f) && TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation, includeOnlyPositionedUnits: false, 0.25f) && distance < 35f))
-            //            {
-            //                ____readyOrder = MovementOrder.MovementOrderChargeToTarget(correctEnemy);
-            //                ____waitOrder = MovementOrder.MovementOrderChargeToTarget(correctEnemy);
-            //                ____currentOrder = ____readyOrder;
-            //            }
-
-            //        }
-            //    }
-
-            //    if (__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null && ____tacticalWaitPos != null && ____tacticalMiddlePos == null)
-            //    {
-            //        float distance = __instance.Formation.QuerySystem.MedianPosition.AsVec2.Distance(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation.QuerySystem.AveragePosition);
-            //        if ((____innerGate.IsDestroyed || ____innerGate.IsGateOpen) && (TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation, includeOnlyPositionedUnits: false, 0.25f) && distance < 35f ||
-            //                    TeamAISiegeComponent.IsFormationInsideCastle(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation, includeOnlyPositionedUnits: false, 0.2f)))
-            //        {
-            //            ____readyOrder = MovementOrder.MovementOrderChargeToTarget(__instance.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation);
-            //            ____currentOrder = ____readyOrder;
-            //        }
-            //    }
-            //}
-
-            //[HarmonyPrefix]
-            //[HarmonyPatch("TickOccasionally")]
-            //static bool PrefixTickOccasionally(ref FacingOrder ____readyFacingOrder, ref FacingOrder ____waitFacingOrder, ref BehaviorDefendCastleKeyPosition __instance, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder, FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
-            //{
-            //    IEnumerable<SiegeWeapon> source = from sw in Mission.Current.ActiveMissionObjects.FindAllWithType<SiegeWeapon>()
-            //                                      where sw is IPrimarySiegeWeapon && (((sw as IPrimarySiegeWeapon).WeaponSide == FormationAI.BehaviorSide.Middle && !(sw as IPrimarySiegeWeapon).HoldLadders) || (sw as IPrimarySiegeWeapon).WeaponSide != FormationAI.BehaviorSide.Middle && (sw as IPrimarySiegeWeapon).SendLadders)
-            //                                      //where sw is IPrimarySiegeWeapon
-            //                                      select sw;
-
-            //    BehaviorState BehaviorState = ____teamAISiegeDefender == null || !source.Any() ? BehaviorState.Waiting : BehaviorState.Ready;
-            //    if (BehaviorState != ____behaviorState)
-            //    {
-            //        ____behaviorState = BehaviorState;
-            //        ____currentOrder = ((____behaviorState == BehaviorState.Ready) ? ____readyOrder : ____waitOrder);
-            //        ___CurrentFacingOrder = ((____behaviorState == BehaviorState.Ready) ? ____readyFacingOrder : ____waitFacingOrder);
-            //    }
-            //    if (Mission.Current.MissionTeamAIType == Mission.MissionTeamAITypeEnum.Siege)
-            //    {
-            //        if (____outerGate != null && ____outerGate.State == CastleGate.GateState.Open && !____outerGate.IsDestroyed)
-            //        {
-            //            if (!____outerGate.IsUsedByFormation(__instance.Formation))
-            //            {
-            //                __instance.Formation.StartUsingMachine(____outerGate);
-            //            }
-            //        }
-            //        else if (____innerGate != null && ____innerGate.State == CastleGate.GateState.Open && !____innerGate.IsDestroyed && !____innerGate.IsUsedByFormation(__instance.Formation))
-            //        {
-            //            __instance.Formation.StartUsingMachine(____innerGate);
-            //        }
-            //    }
-
-            //    MethodInfo method = typeof(BehaviorDefendCastleKeyPosition).GetMethod("CalculateCurrentOrder", BindingFlags.NonPublic | BindingFlags.Instance);
-            //    method.DeclaringType.GetMethod("CalculateCurrentOrder");
-            //    method.Invoke(__instance, new object[] { });
-
-            //    __instance.Formation.SetMovementOrder(____currentOrder);
-            //    __instance.Formation.FacingOrder = ___CurrentFacingOrder;
-            //    if (____behaviorState == BehaviorState.Ready && ____tacticalMiddlePos != null)
-            //    {
-            //        __instance.Formation.FormOrder = FormOrder.FormOrderCustom(____tacticalMiddlePos.Width * 2f);
-            //    }
-            //    else if (____behaviorState == BehaviorState.Waiting && ____tacticalWaitPos != null)
-            //    {
-            //        __instance.Formation.FormOrder = FormOrder.FormOrderCustom(____tacticalWaitPos.Width * 2f);
-            //    }
-            //    //bool flag = ____isDefendingWideGap && ____behaviorState == BehaviorState.Ready && __instance.Formation.QuerySystem.ClosestEnemyFormation != null && (__instance.Formation.QuerySystem.IsUnderRangedAttack || __instance.Formation.QuerySystem.AveragePosition.DistanceSquared(____currentOrder.GetPosition(__instance.Formation)) < 25f + (____isInShieldWallDistance ? 75f : 0f));
-            //    //if (flag == ____isInShieldWallDistance)
-            //    //{
-            //    //    return false;
-            //    //}
-            //    //____isInShieldWallDistance = flag;
-            //    //if (____isInShieldWallDistance && __instance.Formation.QuerySystem.HasShield)
-            //    //{
-            //    //    if (__instance.Formation.ArrangementOrder != ArrangementOrder.ArrangementOrderLine)
-            //    //    {
-            //    //        __instance.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLine;
-            //    //    }
-            //    //}
-            //    //else if (__instance.Formation.ArrangementOrder == ArrangementOrder.ArrangementOrderLine)
-            //    //{
-            //    __instance.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLine;
-            //    //}
-            //    return false;
-            //}
+                __instance.Formation.SetMovementOrder(____currentOrder);
+                __instance.Formation.FacingOrder = ___CurrentFacingOrder;
+                if (____behaviorState == BehaviorState.Ready && ____tacticalMiddlePos != null)
+                {
+                    __instance.Formation.FormOrder = FormOrder.FormOrderCustom(____tacticalMiddlePos.Width * 2f);
+                }
+                else if (____behaviorState == BehaviorState.Waiting && ____tacticalWaitPos != null)
+                {
+                    __instance.Formation.FormOrder = FormOrder.FormOrderCustom(____tacticalWaitPos.Width * 2f);
+                }
+                //bool flag = ____isDefendingWideGap && ____behaviorState == BehaviorState.Ready && __instance.Formation.QuerySystem.ClosestEnemyFormation != null && (__instance.Formation.QuerySystem.IsUnderRangedAttack || __instance.Formation.QuerySystem.AveragePosition.DistanceSquared(____currentOrder.GetPosition(__instance.Formation)) < 25f + (____isInShieldWallDistance ? 75f : 0f));
+                //if (flag == ____isInShieldWallDistance)
+                //{
+                //    return false;
+                //}
+                //____isInShieldWallDistance = flag;
+                //if (____isInShieldWallDistance && __instance.Formation.QuerySystem.HasShield)
+                //{
+                //    if (__instance.Formation.ArrangementOrder != ArrangementOrder.ArrangementOrderLine)
+                //    {
+                //        __instance.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLine;
+                //    }
+                //}
+                //else if (__instance.Formation.ArrangementOrder == ArrangementOrder.ArrangementOrderLine)
+                //{
+                __instance.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLine;
+                //}
+                return false;
+            }
         }
 
         [HarmonyPatch(typeof(LadderQueueManager))]
@@ -865,52 +791,52 @@ namespace RBMAI.AiModule
             //}
         }
 
-        //[HarmonyPatch(typeof(SiegeLane))]
-        //class OverrideSiegeLane
-        //{
-        //    [HarmonyPrefix]
-        //    [HarmonyPatch("GetLaneCapacity")]
-        //    static bool PrefixGetLaneCapacity(ref SiegeLane __instance, ref float __result)
-        //    {
-        //        if (__instance.DefensePoints.Any((ICastleKeyPosition dp) => dp is WallSegment && (dp as WallSegment).IsBreachedWall))
-        //        {
-        //            __result = 60f;
-        //            return false;
-        //        }
-        //        if ((__instance.HasGate && __instance.DefensePoints.Where((ICastleKeyPosition dp) => dp is CastleGate).All((ICastleKeyPosition cg) => (cg as CastleGate).IsGateOpen)))
-        //        {
-        //            __result = 60f;
-        //            return false;
-        //        }
-        //        __result = __instance.PrimarySiegeWeapons.Where((IPrimarySiegeWeapon psw) => !(psw as SiegeWeapon).IsDestroyed).Sum((IPrimarySiegeWeapon psw) => psw.SiegeWeaponPriority);
-        //        if (__result == 6f)
-        //        {
-        //            __result = 15f;
-        //        }
-        //        if (__result == 15f)
-        //        {
-        //            __result = 15f;
-        //        }
-        //        if (__result == 25f)
-        //        {
-        //            __result = 60f;
-        //        }
-        //        return false;
-        //    }
+        [HarmonyPatch(typeof(SiegeLane))]
+        class OverrideSiegeLane
+        {
+            [HarmonyPrefix]
+            [HarmonyPatch("GetLaneCapacity")]
+            static bool PrefixGetLaneCapacity(ref SiegeLane __instance, ref float __result)
+            {
+                if (__instance.DefensePoints.Any((ICastleKeyPosition dp) => dp is WallSegment && (dp as WallSegment).IsBreachedWall))
+                {
+                    __result = 60f;
+                    return false;
+                }
+                if ((__instance.HasGate && __instance.DefensePoints.Where((ICastleKeyPosition dp) => dp is CastleGate).All((ICastleKeyPosition cg) => (cg as CastleGate).IsGateOpen)))
+                {
+                    __result = 60f;
+                    return false;
+                }
+                __result = __instance.PrimarySiegeWeapons.Where((IPrimarySiegeWeapon psw) => !(psw as SiegeWeapon).IsDestroyed).Sum((IPrimarySiegeWeapon psw) => psw.SiegeWeaponPriority);
+                if (__result == 6f)
+                {
+                    __result = 15f;
+                }
+                if (__result == 15f)
+                {
+                    __result = 15f;
+                }
+                if (__result == 25f)
+                {
+                    __result = 60f;
+                }
+                return false;
+            }
 
-        //    [HarmonyPostfix]
-        //    [HarmonyPatch("DetermineLaneState")]
-        //    static void postfixDetermineLaneState(ref SiegeLane __instance)
-        //    {
-        //        if (__instance.LaneState == LaneStateEnum.Used)
-        //        {
-        //            PropertyInfo property2 = typeof(SiegeLane).GetProperty("LaneState");
-        //            property2.DeclaringType.GetProperty("LaneState");
-        //            property2.SetValue(__instance, LaneStateEnum.Active, BindingFlags.NonPublic | BindingFlags.SetProperty, null, null, null);
-        //            //___LaneState = LaneStateEnum.Active;
-        //        }
-        //    }
-        //}
+            [HarmonyPostfix]
+            [HarmonyPatch("DetermineLaneState")]
+            static void postfixDetermineLaneState(ref SiegeLane __instance)
+            {
+                if (__instance.LaneState == LaneStateEnum.Used)
+                {
+                    PropertyInfo property2 = typeof(SiegeLane).GetProperty("LaneState");
+                    property2.DeclaringType.GetProperty("LaneState");
+                    property2.SetValue(__instance, LaneStateEnum.Active, BindingFlags.NonPublic | BindingFlags.SetProperty, null, null, null);
+                    //___LaneState = LaneStateEnum.Active;
+                }
+            }
+        }
 
         [HarmonyPatch(typeof(AgentMoraleInteractionLogic))]
         class AgentMoraleInteractionLogicPatch

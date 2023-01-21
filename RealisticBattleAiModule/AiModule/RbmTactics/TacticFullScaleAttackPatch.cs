@@ -39,7 +39,7 @@ namespace RBMAI.AiModule.RbmTactics
                 ____leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
                 ____leftCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
             }
-            if(____rangedCavalry != null)
+            if (____rangedCavalry != null)
             {
                 ____rangedCavalry.AI.ResetBehaviorWeights();
                 TacticFullScaleAttack.SetDefaultBehaviorWeights(____rangedCavalry);
@@ -95,7 +95,9 @@ namespace RBMAI.AiModule.RbmTactics
         [HarmonyPatch("GetTacticWeight")]
         static void PostfixGetAiWeight(TacticFullScaleAttack __instance, ref float __result)
         {
-            Team currentTeam = __instance.Team;
+            FieldInfo teamField = typeof(TacticFullScaleAttack).GetField("team", BindingFlags.NonPublic | BindingFlags.Instance);
+            teamField.DeclaringType.GetField("team");
+            Team currentTeam = (Team)teamField.GetValue(__instance);
             if (currentTeam.Side == BattleSideEnum.Defender)
             {
                 if (currentTeam.QuerySystem.InfantryRatio > 0.9f)
@@ -103,7 +105,7 @@ namespace RBMAI.AiModule.RbmTactics
                     __result = 100f;
                 }
             }
-            if(float.IsNaN(__result))
+            if (float.IsNaN(__result))
             {
                 __result = 0.01f;
             }
