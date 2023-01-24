@@ -1,14 +1,13 @@
 ﻿using System;
 using TaleWorlds.Core;
-using TaleWorlds.Engine;
-using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
 namespace RBMAI
 {
-    class RBMBehaviorArcherFlank : BehaviorComponent
+    internal class RBMBehaviorArcherFlank : BehaviorComponent
     {
+        private bool _isEnemyReachable = true;
         //private Timer returnTimer = null;
         //private Timer feintTimer = null;
         //private Timer attackTimer = null;
@@ -20,7 +19,7 @@ namespace RBMAI
         {
             _behaviorSide = formation.AI.Side;
             CalculateCurrentOrder();
-            base.BehaviorCoherence = 0.5f;
+            BehaviorCoherence = 0.5f;
             base.NavmeshlessTargetPositionPenalty = 1f;
         }
 
@@ -32,35 +31,37 @@ namespace RBMAI
         protected override void OnBehaviorActivatedAux()
         {
             CalculateCurrentOrder();
-            base.Formation.SetMovementOrder(base.CurrentOrder);
-            base.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLoose;
-            base.Formation.FacingOrder = FacingOrder.FacingOrderLookAtEnemy;
-            base.Formation.FiringOrder = FiringOrder.FiringOrderFireAtWill;
-            base.Formation.FormOrder = FormOrder.FormOrderWide;
-            base.Formation.WeaponUsageOrder = WeaponUsageOrder.WeaponUsageOrderUseAny;
+            Formation.SetMovementOrder(CurrentOrder);
+            Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLoose;
+            Formation.FacingOrder = FacingOrder.FacingOrderLookAtEnemy;
+            Formation.FiringOrder = FiringOrder.FiringOrderFireAtWill;
+            Formation.FormOrder = FormOrder.FormOrderWide;
+            Formation.WeaponUsageOrder = WeaponUsageOrder.WeaponUsageOrderUseAny;
         }
 
         protected override void CalculateCurrentOrder()
         {
-            WorldPosition position = base.Formation.QuerySystem.MedianPosition;
-            Vec2 averagePosition = base.Formation.QuerySystem.AveragePosition;
+            var position = Formation.QuerySystem.MedianPosition;
+            var averagePosition = Formation.QuerySystem.AveragePosition;
 
-            float flankRange = 20f;
+            var flankRange = 20f;
 
-            Formation allyFormation = RBMAI.Utilities.FindSignificantAlly(base.Formation, true, false, false, false, false);
+            var allyFormation = Utilities.FindSignificantAlly(Formation, true, false, false, false, false);
 
-            //Vec2 averageAllyFormationPosition = base.Formation.QuerySystem.Team.AveragePosition;
-            WorldPosition medianTargetFormationPosition = base.Formation.QuerySystem.Team.MedianTargetFormationPosition;
-            Vec2 enemyDirection = (medianTargetFormationPosition.AsVec2 - averagePosition).Normalized();
+            var averageAllyFormationPosition = Formation.QuerySystem.Team.AveragePosition;
+            var medianTargetFormationPosition = Formation.QuerySystem.Team.MedianTargetFormationPosition;
+            var enemyDirection = (medianTargetFormationPosition.AsVec2 - averagePosition).Normalized();
 
             if (_behaviorSide == FormationAI.BehaviorSide.Right || FlankSide == FormationAI.BehaviorSide.Right)
             {
                 if (allyFormation != null)
                 {
-                    Vec2 calcPosition = allyFormation.CurrentPosition + allyFormation.Direction.RightVec().Normalized() * (allyFormation.Width * 0.5f + base.Formation.Width * 0.5f + flankRange);
+                    var calcPosition = allyFormation.CurrentPosition + allyFormation.Direction.RightVec().Normalized() *
+                        (allyFormation.Width * 0.5f + Formation.Width * 0.5f + flankRange);
 
                     position.SetVec2(calcPosition);
-                    if (!Mission.Current.IsPositionInsideBoundaries(calcPosition) || position.GetNavMesh() == UIntPtr.Zero)
+                    if (!Mission.Current.IsPositionInsideBoundaries(calcPosition) ||
+                        position.GetNavMesh() == UIntPtr.Zero)
                     {
                         calcPosition = allyFormation.CurrentPosition;
                         calcPosition -= allyFormation.Direction * 5f;
@@ -76,15 +77,16 @@ namespace RBMAI
             {
                 if (allyFormation != null)
                 {
-                    Vec2 calcPosition = allyFormation.CurrentPosition + allyFormation.Direction.LeftVec().Normalized() * (allyFormation.Width * 0.5f + base.Formation.Width * 0.5f + flankRange);
+                    var calcPosition = allyFormation.CurrentPosition + allyFormation.Direction.LeftVec().Normalized() *
+                        (allyFormation.Width * 0.5f + Formation.Width * 0.5f + flankRange);
                     position.SetVec2(calcPosition);
-                    if (!Mission.Current.IsPositionInsideBoundaries(calcPosition) || position.GetNavMesh() == UIntPtr.Zero)
+                    if (!Mission.Current.IsPositionInsideBoundaries(calcPosition) ||
+                        position.GetNavMesh() == UIntPtr.Zero)
                     {
                         calcPosition = allyFormation.CurrentPosition;
                         calcPosition -= allyFormation.Direction * 10f;
                         position.SetVec2(calcPosition);
                     }
-
                 }
                 else
                 {
@@ -94,31 +96,26 @@ namespace RBMAI
             else
             {
                 if (allyFormation != null)
-                {
                     position = allyFormation.QuerySystem.MedianPosition;
-                }
                 else
-                {
                     position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 150f);
-                }
             }
-            base.CurrentOrder = MovementOrder.MovementOrderMove(position);
-            float angle = CurrentFacingOrder.GetDirection(Formation).AngleBetween(enemyDirection);
+
+            CurrentOrder = MovementOrder.MovementOrderMove(position);
+            var angle = CurrentFacingOrder.GetDirection(Formation).AngleBetween(enemyDirection);
             if (angle > 0.2f || angle < -0.2f)
-            {
-                base.CurrentFacingOrder = FacingOrder.FacingOrderLookAtDirection(enemyDirection);
-            }
+                CurrentFacingOrder = FacingOrder.FacingOrderLookAtDirection(enemyDirection);
         }
 
         public override void TickOccasionally()
         {
             CalculateCurrentOrder();
-            base.Formation.SetMovementOrder(base.CurrentOrder);
+            Formation.SetMovementOrder(CurrentOrder);
         }
 
         public override TextObject GetBehaviorString()
         {
-            string name = GetType().Name;
+            var name = GetType().Name;
             return GameTexts.FindText("str_formation_ai_sergeant_instruction_behavior_text", name);
         }
     }

@@ -1,21 +1,21 @@
 ﻿<Module>
-  <Name value="ATO Troop Formation AI"/>
-  <Id value="ATOTroopFormationAI"/>
-  <Version value="v3.5.0"/>
+  <Name value="ATO RBM"/>
+  <Id value="ATO_RBM"/>
+  <Version value="v1.0.0"/>
   <SingleplayerModule value="true"/>
   <MultiplayerModule value="false"/>
   <DependedModules>
-    <DependedModule Id="Native" DependentVersion="v1.0.0" Optional="false"/>
-    <DependedModule Id="SandBoxCore" DependentVersion="v1.0.0" Optional="false"/>
-    <DependedModule Id="Sandbox" DependentVersion="v1.0.0" Optional="false"/>
-    <DependedModule Id="StoryMode" DependentVersion="v1.0.0" Optional="false"/>
-    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v1.0.0" Optional="false"/>
-    <DependedModule Id="StandardizedAndBuffedTroops" Optional="true"/>
+    <DependedModule Id="Native" Optional="false"/>
+    <DependedModule Id="SandBoxCore" Optional="false"/>
+    <DependedModule Id="Sandbox" Optional="false"/>
+    <DependedModule Id="StoryMode" Optional="false"/>
+    <DependedModule Id="Bannerlord.Harmony" Optional="false"/>
+    <DependedModule Id="ATO" Optional="true"/>
   </DependedModules>
   <SubModules>
     <SubModule>
-      <Name value="std_RBM_AI"/>
-      <DLLName value="RBM.dll"/>
+      <Name value="ATO_RBM"/>
+      <DLLName value="ATO_RBMSubModule.dll"/>
       <SubModuleClassType value="RBM.SubModule"/>
       <Tags>
         <Tag key="DedicatedServerType" value="none" />

@@ -1,16 +1,15 @@
-﻿using RBMAI;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
+using RBMAI;
 using TaleWorlds.MountAndBlade;
 
 public class RBMTacticAttackSplitArchers : TacticComponent
 {
+    private bool _hasBattleBeenJoined;
     private Formation leftArchers;
     private Formation rightArchers;
-    private bool _hasBattleBeenJoined;
 
-    int waitCountMainFormation = 0;
-    int waitCountMainFormationMax = 30;
+    private int waitCountMainFormation;
+    private readonly int waitCountMainFormationMax = 30;
 
     public RBMTacticAttackSplitArchers(Team team)
         : base(team)
@@ -20,14 +19,16 @@ public class RBMTacticAttackSplitArchers : TacticComponent
     protected void AssignTacticFormations()
     {
         ManageFormationCounts(1, 2, 2, 1);
-        _mainInfantry = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsInfantryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower).FirstOrDefault();
+        _mainInfantry = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsInfantryFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower).FirstOrDefault();
         if (_mainInfantry != null)
         {
             _mainInfantry.AI.IsMainFormation = true;
             _mainInfantry.AI.Side = FormationAI.BehaviorSide.Middle;
-
         }
-        List<Formation> cavFormationsList = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsCavalryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower);
+
+        var cavFormationsList = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsCavalryFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower);
         if (cavFormationsList.Count > 0)
         {
             _leftCavalry = cavFormationsList[0];
@@ -47,8 +48,11 @@ public class RBMTacticAttackSplitArchers : TacticComponent
             _leftCavalry = null;
             _rightCavalry = null;
         }
-        _rangedCavalry = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsRangedCavalryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower).FirstOrDefault();
-        List<Formation> archerFormationsList = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsRangedFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower);
+
+        _rangedCavalry = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsRangedCavalryFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower).FirstOrDefault();
+        var archerFormationsList = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsRangedFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower);
         if (archerFormationsList.Count > 0)
         {
             leftArchers = archerFormationsList[0];
@@ -71,6 +75,7 @@ public class RBMTacticAttackSplitArchers : TacticComponent
 
         IsTacticReapplyNeeded = true;
     }
+
     protected override void ManageFormationCounts()
     {
         AssignTacticFormations();
@@ -78,16 +83,13 @@ public class RBMTacticAttackSplitArchers : TacticComponent
 
     private void Advance()
     {
-        if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant)
-        {
-            SoundTacticalHorn(MoveHornSoundIndex);
-        }
+        if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant) SoundTacticalHorn(MoveHornSoundIndex);
         if (_mainInfantry != null)
         {
             if (waitCountMainFormation < waitCountMainFormationMax)
             {
                 _mainInfantry.AI.ResetBehaviorWeights();
-                TacticComponent.SetDefaultBehaviorWeights(_mainInfantry);
+                SetDefaultBehaviorWeights(_mainInfantry);
                 _mainInfantry.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
                 waitCountMainFormation++;
                 IsTacticReapplyNeeded = true;
@@ -98,18 +100,21 @@ public class RBMTacticAttackSplitArchers : TacticComponent
                 IsTacticReapplyNeeded = false;
             }
         }
+
         if (leftArchers != null)
         {
             leftArchers.AI.ResetBehaviorWeights();
             //SetDefaultBehaviorWeights(leftArchers);
             leftArchers.AI.SetBehaviorWeight<RBMBehaviorArcherFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
         }
+
         if (rightArchers != null)
         {
             rightArchers.AI.ResetBehaviorWeights();
             //SetDefaultBehaviorWeights(rightArchers);
             rightArchers.AI.SetBehaviorWeight<RBMBehaviorArcherFlank>(1f).FlankSide = FormationAI.BehaviorSide.Right;
         }
+
         if (_leftCavalry != null)
         {
             _leftCavalry.AI.ResetBehaviorWeights();
@@ -117,13 +122,16 @@ public class RBMTacticAttackSplitArchers : TacticComponent
             _leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
             _leftCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
         }
+
         if (_rightCavalry != null)
         {
             _rightCavalry.AI.ResetBehaviorWeights();
             //SetDefaultBehaviorWeights(_rightCavalry);
             _rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Right;
-            _rightCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Right;
+            _rightCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide =
+                FormationAI.BehaviorSide.Right;
         }
+
         if (_rangedCavalry != null)
         {
             _rangedCavalry.AI.ResetBehaviorWeights();
@@ -136,22 +144,22 @@ public class RBMTacticAttackSplitArchers : TacticComponent
     private void Attack()
     {
         if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant)
-        {
             SoundTacticalHorn(AttackHornSoundIndex);
-        }
-        RBMAI.Utilities.FixCharge(ref _mainInfantry);
+        Utilities.FixCharge(ref _mainInfantry);
         if (leftArchers != null)
         {
             leftArchers.AI.ResetBehaviorWeights();
             SetDefaultBehaviorWeights(leftArchers);
             leftArchers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
         }
+
         if (rightArchers != null)
         {
             rightArchers.AI.ResetBehaviorWeights();
             SetDefaultBehaviorWeights(rightArchers);
             rightArchers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
         }
+
         if (_leftCavalry != null)
         {
             _leftCavalry.AI.ResetBehaviorWeights();
@@ -159,6 +167,7 @@ public class RBMTacticAttackSplitArchers : TacticComponent
             _leftCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
             _leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
         }
+
         if (_rightCavalry != null)
         {
             _rightCavalry.AI.ResetBehaviorWeights();
@@ -166,99 +175,94 @@ public class RBMTacticAttackSplitArchers : TacticComponent
             _rightCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
             _rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
         }
+
         if (_rangedCavalry != null)
         {
             _rangedCavalry.AI.ResetBehaviorWeights();
             SetDefaultBehaviorWeights(_rangedCavalry);
             _rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
         }
+
         IsTacticReapplyNeeded = false;
     }
 
     private bool HasBattleBeenJoined()
     {
-        return RBMAI.Utilities.HasBattleBeenJoined(_mainInfantry, _hasBattleBeenJoined);
+        return Utilities.HasBattleBeenJoined(_mainInfantry, _hasBattleBeenJoined);
     }
 
     protected override bool CheckAndSetAvailableFormationsChanged()
     {
-        int num = base.Formations.Count((Formation f) => f.IsAIControlled);
-        bool num2 = num != _AIControlledFormationCount;
+        var num = Formations.Count(f => f.IsAIControlled);
+        var num2 = num != _AIControlledFormationCount;
         if (num2)
         {
             _AIControlledFormationCount = num;
             IsTacticReapplyNeeded = true;
         }
+
         if (!num2)
         {
-            if ((_mainInfantry == null || (_mainInfantry.CountOfUnits != 0 && _mainInfantry.QuerySystem.IsInfantryFormation)) && (leftArchers == null || (leftArchers.CountOfUnits != 0 && leftArchers.QuerySystem.IsRangedFormation)) && (rightArchers == null || (rightArchers.CountOfUnits != 0 && rightArchers.QuerySystem.IsRangedFormation)) && (_leftCavalry == null || (_leftCavalry.CountOfUnits != 0 && _leftCavalry.QuerySystem.IsCavalryFormation)) && (_rightCavalry == null || (_rightCavalry.CountOfUnits != 0 && _rightCavalry.QuerySystem.IsCavalryFormation)))
+            if ((_mainInfantry == null ||
+                 (_mainInfantry.CountOfUnits != 0 && _mainInfantry.QuerySystem.IsInfantryFormation)) &&
+                (leftArchers == null || (leftArchers.CountOfUnits != 0 && leftArchers.QuerySystem.IsRangedFormation)) &&
+                (rightArchers == null ||
+                 (rightArchers.CountOfUnits != 0 && rightArchers.QuerySystem.IsRangedFormation)) &&
+                (_leftCavalry == null ||
+                 (_leftCavalry.CountOfUnits != 0 && _leftCavalry.QuerySystem.IsCavalryFormation)) &&
+                (_rightCavalry == null ||
+                 (_rightCavalry.CountOfUnits != 0 && _rightCavalry.QuerySystem.IsCavalryFormation)))
             {
                 if (_rangedCavalry != null)
                 {
-                    if (_rangedCavalry.CountOfUnits != 0)
-                    {
-                        return !_rangedCavalry.QuerySystem.IsRangedCavalryFormation;
-                    }
+                    if (_rangedCavalry.CountOfUnits != 0) return !_rangedCavalry.QuerySystem.IsRangedCavalryFormation;
                     return true;
                 }
+
                 return false;
             }
+
             return true;
         }
+
         return true;
     }
 
     protected override void TickOccasionally()
     {
-        if (!base.AreFormationsCreated)
-        {
-            return;
-        }
-        bool flag = HasBattleBeenJoined();
+        if (!AreFormationsCreated) return;
+        var flag = HasBattleBeenJoined();
         if (CheckAndSetAvailableFormationsChanged())
         {
             _hasBattleBeenJoined = flag;
             ManageFormationCounts();
             if (_hasBattleBeenJoined)
-            {
                 Attack();
-            }
             else
-            {
                 Advance();
-            }
             //IsTacticReapplyNeeded = false;
         }
+
         if (flag != _hasBattleBeenJoined || IsTacticReapplyNeeded)
         {
             _hasBattleBeenJoined = flag;
             if (_hasBattleBeenJoined)
-            {
                 Attack();
-            }
             else
-            {
                 Advance();
-            }
             //IsTacticReapplyNeeded = false;
         }
+
         base.TickOccasionally();
     }
 
     protected override float GetTacticWeight()
     {
-        if (Mission.Current != null && !Mission.Current.IsTeleportingAgents && team.TeamAI.IsCurrentTactic(this) && team.QuerySystem.RangedRatio > 0.05f)
-        {
-            return 10f;
-        }
+        if (Mission.Current != null && !Mission.Current.IsTeleportingAgents && team.TeamAI.IsCurrentTactic(this) &&
+            team.QuerySystem.RangedRatio > 0.05f) return 10f;
         if (team.QuerySystem.RangedRatio > 0.2f)
-        {
             return 10f;
-        }
-        else
-        {
-            return 0.2f;
-        }
+        return 0.2f;
         //float num = team.QuerySystem.RangedCavalryRatio * (float)team.QuerySystem.MemberCount;
         //return team.QuerySystem.InfantryRatio * (float)team.QuerySystem.MemberCount / ((float)team.QuerySystem.MemberCount - num) * MathF.Sqrt(team.QuerySystem.RemainingPowerRatio);
     }

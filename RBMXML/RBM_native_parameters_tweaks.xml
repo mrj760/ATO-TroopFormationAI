@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<base xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" type="combat_parameters">
+  <native_parameters>
+    <!-- human movement related -->
+	<native_parameter id="bipedal_speed_multiplier" value="5.2"/>
+	<native_parameter id="ranged_target_radius_multiplier" value="4.5"/>
+    <native_parameter id="defend_speed_multiplier" value="3.2"/>
+    <native_parameter id="defend_right_stance_speed_multiplier" value="1.0"/>
+	
+	<native_parameter id="shield_bash_collision_check_scale_multiplier" value="1.3"/>
+	
+	<native_parameter id="quadrupedal_acceleration_multiplier" value="20"/>
+	
+	<native_parameter id="missile_launch_perpendicular_speed_effect_ratio" value="1"/>
+	
+    <native_parameter id="guard_reset_time" value="10.0"/>
+	
+	<native_parameter id="mounted_passive_action_minimum_speed" value="7"/>
+	
+	<native_parameter id="humanoid_physics_capsule_radius_multiplier_for_friend" value="1.1"/>
+	
+    <native_parameter id="on_weapon_hit_slow_down_factor_swing" value="0.7"/>
+    <native_parameter id="on_weapon_hit_slow_down_factor_thrust" value="0.7"/>
+
+  </native_parameters>
+</base>

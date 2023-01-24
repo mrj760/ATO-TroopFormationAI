@@ -1,495 +1,452 @@
-﻿using RBMAI;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using RBMAI;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
 
 public class RBMTacticAttackSplitSkirmishers : TacticComponent
 {
-	protected Formation _skirmishers;
-    readonly int side = MBRandom.RandomInt(2);
-	int waitCountMainFormation = 0;
-    readonly int waitCountMainFormationMax = 25;
+    private bool _hasBattleBeenJoined;
+    protected Formation _skirmishers;
+    private readonly int side = MBRandom.RandomInt(2);
+    private int waitCountMainFormation;
+    private readonly int waitCountMainFormationMax = 25;
 
-	protected void AssignTacticFormations()
-	{
-		int skirmIndex = -1;
-		ManageFormationCounts(2, 1, 2, 1);
-		_mainInfantry = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsInfantryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower).FirstOrDefault();
-		if (_mainInfantry != null)
-		{
-			_mainInfantry.AI.IsMainFormation = true;
-			_mainInfantry.AI.Side = FormationAI.BehaviorSide.Middle;
+    public RBMTacticAttackSplitSkirmishers(Team team)
+        : base(team)
+    {
+        _hasBattleBeenJoined = false;
+    }
 
-			List<Agent> skirmishersList = new List<Agent>();
-			List<Agent> meleeList = new List<Agent>();
+    protected void AssignTacticFormations()
+    {
+        var skirmIndex = -1;
+        ManageFormationCounts(2, 1, 2, 1);
+        _mainInfantry = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsInfantryFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower).FirstOrDefault();
+        if (_mainInfantry != null)
+        {
+            _mainInfantry.AI.IsMainFormation = true;
+            _mainInfantry.AI.Side = FormationAI.BehaviorSide.Middle;
 
-			_mainInfantry.ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
-			{
-				bool isSkirmisher = false;
-				//for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
-				//{
-				//	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
-				//	{
-				//		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
-				//		{
-				//			isSkirmisher = true;
-				//			break;
-				//		}
-				//	}
-				//}
+            var skirmishersList = new List<Agent>();
+            var meleeList = new List<Agent>();
 
-				if (RBMAI.Utilities.CheckIfSkirmisherAgent(agent))
-				{
-					isSkirmisher = true;
-				}
+            _mainInfantry.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
+            {
+                var isSkirmisher = false;
+                //for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
+                //{
+                //	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
+                //	{
+                //		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
+                //		{
+                //			isSkirmisher = true;
+                //			break;
+                //		}
+                //	}
+                //}
 
-
-				if (isSkirmisher)
-				{
-					skirmishersList.Add(agent);
-				}
-				else
-				{
-					meleeList.Add(agent);
-				}
-			});
-
-			int i = 0;
-			foreach (Formation formation in Formations.ToList())
-			{
-				formation.ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
-				{
-					if (i != 0 && formation.IsInfantry())
-					{
-						bool isSkirmisher = false;
-						//for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
-						//{
-						//	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
-						//	{
-						//		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
-						//		{
-						//			isSkirmisher = true;
-						//			break;
-						//		}
-						//	}
-						//}
-
-						if (RBMAI.Utilities.CheckIfSkirmisherAgent(agent, 2))
-						{
-							isSkirmisher = true;
-						}
+                if (Utilities.CheckIfSkirmisherAgent(agent)) isSkirmisher = true;
 
 
-						if (isSkirmisher)
-						{
-							skirmishersList.Add(agent);
-						}
-						else
-						{
-							meleeList.Add(agent);
-						}
-						skirmIndex = i;
-					}
-				});
-				i++;
-			}
+                if (isSkirmisher)
+                    skirmishersList.Add(agent);
+                else
+                    meleeList.Add(agent);
+            });
 
-			/**
-			//Formations.ToList()[1].ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
-			//{
-			//	bool isSkirmisher = false;
-			//	//for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
-			//	//{
-			//	//	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
-			//	//	{
-			//	//		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
-			//	//		{
-			//	//			isSkirmisher = true;
-			//	//			break;
-			//	//		}
-			//	//	}
-			//	//}
+            var i = 0;
+            foreach (var formation in Formations.ToList())
+            {
+                formation.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
+                {
+                    if (i != 0 && formation.IsInfantry())
+                    {
+                        var isSkirmisher = false;
+                        //for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
+                        //{
+                        //	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
+                        //	{
+                        //		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
+                        //		{
+                        //			isSkirmisher = true;
+                        //			break;
+                        //		}
+                        //	}
+                        //}
 
-			//	if (agent.HasThrownCached)
-			//	{
-			//		isSkirmisher = true;
-			//	}
+                        if (Utilities.CheckIfSkirmisherAgent(agent, 2)) isSkirmisher = true;
 
 
-			//	if (isSkirmisher)
-			//	{
-			//		skirmishersList.Add(agent);
-			//	}
-			//	else
-			//	{
-			//		meleeList.Add(agent);
-			//	}
-			//});
-			*/
+                        if (isSkirmisher)
+                            skirmishersList.Add(agent);
+                        else
+                            meleeList.Add(agent);
+                        skirmIndex = i;
+                    }
+                });
+                i++;
+            }
 
-			skirmishersList = skirmishersList.OrderBy(o => o.CharacterPowerCached).ToList();
-			if (skirmIndex != -1)
-			{
-				int j = 0;
-				int infCount = Formations.ToList()[0].CountOfUnits + Formations.ToList()[skirmIndex].CountOfUnits;
-				foreach (Agent agent in skirmishersList.ToList())
-				{
-					if (j < infCount / 4f)
-					{
-						agent.Formation = Formations.ToList()[skirmIndex];
-					}
-					else
-					{
-						agent.Formation = Formations.ToList()[0];
-					}
-					j++;
-				}
+            //Formations.ToList()[1].ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
+            //{
+            //	bool isSkirmisher = false;
+            //	//for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
+            //	//{
+            //	//	if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
+            //	//	{
+            //	//		if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown)
+            //	//		{
+            //	//			isSkirmisher = true;
+            //	//			break;
+            //	//		}
+            //	//	}
+            //	//}
 
-				foreach (Agent agent in meleeList.ToList())
-				{
-					if (j < infCount / 4f)
-					{
-						agent.Formation = Formations.ToList()[skirmIndex];
-					}
-					else
-					{
-						agent.Formation = Formations.ToList()[0];
-					}
-					j++;
-				}
-				if (Formations.ElementAtOrDefault(skirmIndex) != null)
-				{
-					this.team.TriggerOnFormationsChanged(Formations.ToList()[skirmIndex]);
-					this.team.TriggerOnFormationsChanged(Formations.ToList()[0]);
-				}
-			}
+            //	if (agent.HasThrownCached)
+            //	{
+            //		isSkirmisher = true;
+            //	}
 
-		}
 
-		_archers = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsRangedFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower).FirstOrDefault();
-		List<Formation> list = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsCavalryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower);
-		if (list.Count > 0)
-		{
-			_leftCavalry = list[0];
-			_leftCavalry.AI.Side = FormationAI.BehaviorSide.Left;
-			if (list.Count > 1)
-			{
-				_rightCavalry = list[1];
-				_rightCavalry.AI.Side = FormationAI.BehaviorSide.Right;
-			}
-			else
-			{
-				_rightCavalry = null;
-			}
-		}
-		else
-		{
-			_leftCavalry = null;
-			_rightCavalry = null;
-		}
-		_rangedCavalry = ChooseAndSortByPriority(Formations, (Formation f) => f.QuerySystem.IsRangedCavalryFormation, (Formation f) => f.IsAIControlled, (Formation f) => f.QuerySystem.FormationPower).FirstOrDefault();
+            //	if (isSkirmisher)
+            //	{
+            //		skirmishersList.Add(agent);
+            //	}
+            //	else
+            //	{
+            //		meleeList.Add(agent);
+            //	}
+            //});
 
-		if (skirmIndex != -1 && Formations.Count() > skirmIndex && Formations.ToList()[skirmIndex].QuerySystem.IsInfantryFormation)
-		{
-			_skirmishers = Formations.ToList()[skirmIndex];
-			_skirmishers.AI.IsMainFormation = false;
+            skirmishersList = skirmishersList.OrderBy(o => o.CharacterPowerCached).ToList();
+            if (skirmIndex != -1)
+            {
+                var j = 0;
+                var infCount = Formations.ToList()[0].CountOfUnits + Formations.ToList()[skirmIndex].CountOfUnits;
+                foreach (var agent in skirmishersList.ToList())
+                {
+                    if (j < infCount / 4f)
+                        agent.Formation = Formations.ToList()[skirmIndex];
+                    else
+                        agent.Formation = Formations.ToList()[0];
+                    j++;
+                }
 
-		}
-		//if (_skirmishers != null)
-		//{
-		//_skirmishers.AI.Side = FormationAI.BehaviorSide.BehaviorSideNotSet;
-		//_skirmishers.AI.IsMainFormation = false;
-		//_skirmishers.AI.ResetBehaviorWeights();
-		//SetDefaultBehaviorWeights(_skirmishers);
-		//team.ClearRecentlySplitFormations(_skirmishers);
+                foreach (var agent in meleeList.ToList())
+                {
+                    if (j < infCount / 4f)
+                        agent.Formation = Formations.ToList()[skirmIndex];
+                    else
+                        agent.Formation = Formations.ToList()[0];
+                    j++;
+                }
 
-		//_skirmishers = Formations.ToList()[1];
-		//}
+                if (Formations.ElementAtOrDefault(skirmIndex) != null)
+                {
+                    team.TriggerOnFormationsChanged(Formations.ToList()[skirmIndex]);
+                    team.TriggerOnFormationsChanged(Formations.ToList()[0]);
+                }
+            }
+        }
 
-		IsTacticReapplyNeeded = true;
-	}
+        _archers = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsRangedFormation, f => f.IsAIControlled,
+            f => f.QuerySystem.FormationPower).FirstOrDefault();
+        var list = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsCavalryFormation, f => f.IsAIControlled,
+            f => f.QuerySystem.FormationPower);
+        if (list.Count > 0)
+        {
+            _leftCavalry = list[0];
+            _leftCavalry.AI.Side = FormationAI.BehaviorSide.Left;
+            if (list.Count > 1)
+            {
+                _rightCavalry = list[1];
+                _rightCavalry.AI.Side = FormationAI.BehaviorSide.Right;
+            }
+            else
+            {
+                _rightCavalry = null;
+            }
+        }
+        else
+        {
+            _leftCavalry = null;
+            _rightCavalry = null;
+        }
 
-	private bool _hasBattleBeenJoined;
+        _rangedCavalry = ChooseAndSortByPriority(Formations, f => f.QuerySystem.IsRangedCavalryFormation,
+            f => f.IsAIControlled, f => f.QuerySystem.FormationPower).FirstOrDefault();
 
-	public RBMTacticAttackSplitSkirmishers(Team team)
-		: base(team)
-	{
-		_hasBattleBeenJoined = false;
-	}
+        if (skirmIndex != -1 && Formations.Count() > skirmIndex &&
+            Formations.ToList()[skirmIndex].QuerySystem.IsInfantryFormation)
+        {
+            _skirmishers = Formations.ToList()[skirmIndex];
+            _skirmishers.AI.IsMainFormation = false;
+        }
+        //if (_skirmishers != null)
+        //{
+        //_skirmishers.AI.Side = FormationAI.BehaviorSide.BehaviorSideNotSet;
+        //_skirmishers.AI.IsMainFormation = false;
+        //_skirmishers.AI.ResetBehaviorWeights();
+        //SetDefaultBehaviorWeights(_skirmishers);
+        //team.ClearRecentlySplitFormations(_skirmishers);
 
-	protected override void ManageFormationCounts()
-	{
-		AssignTacticFormations();
-	}
+        //_skirmishers = Formations.ToList()[1];
+        //}
 
-	private void Advance()
-	{
-		if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant)
-		{
-			SoundTacticalHorn(TacticComponent.MoveHornSoundIndex);
-		}
-		if (_skirmishers != null)
-		{
-			_skirmishers.AI.ResetBehaviorWeights();
-			//TacticComponent.SetDefaultBehaviorWeights(_skirmishers);
-			//_skirmishers.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
-			if (side == 0)
-			{
-				_skirmishers.AI.Side = FormationAI.BehaviorSide.Left;
-				_skirmishers.AI.SetBehaviorWeight<RBMAI.RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
-			}
-			else
-			{
-				_skirmishers.AI.Side = FormationAI.BehaviorSide.Right;
-				_skirmishers.AI.SetBehaviorWeight<RBMAI.RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Right;
-			}
-		}
-		if (_mainInfantry != null)
-		{
-			if (waitCountMainFormation < waitCountMainFormationMax)
-			{
-				_mainInfantry.AI.ResetBehaviorWeights();
-				TacticComponent.SetDefaultBehaviorWeights(_mainInfantry);
-				_mainInfantry.AI.SetBehaviorWeight<BehaviorRegroup>(1.5f);
-				waitCountMainFormation++;
-				IsTacticReapplyNeeded = true;
-			}
-			else
-			{
-				_mainInfantry.AI.SetBehaviorWeight<BehaviorAdvance>(1f);
-				IsTacticReapplyNeeded = false;
-			}
+        IsTacticReapplyNeeded = true;
+    }
 
-		}
-		if (_archers != null)
-		{
-			_archers.AI.ResetBehaviorWeights();
-			TacticComponent.SetDefaultBehaviorWeights(_archers);
-			_archers.AI.SetBehaviorWeight<BehaviorSkirmishLine>(0f);
-			_archers.AI.SetBehaviorWeight<BehaviorSkirmish>(0f);
-			_archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
-			_archers.AI.SetBehaviorWeight<BehaviorRegroup>(1.25f);
-		}
-		if (_leftCavalry != null)
-		{
-			_leftCavalry.AI.ResetBehaviorWeights();
-			TacticComponent.SetDefaultBehaviorWeights(_leftCavalry);
-			_leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
-			_leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-		}
-		if (_rightCavalry != null)
-		{
-			_rightCavalry.AI.ResetBehaviorWeights();
-			TacticComponent.SetDefaultBehaviorWeights(_rightCavalry);
-			_rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Right;
-			_rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-		}
-		if (_rangedCavalry != null)
-		{
-			_rangedCavalry.AI.ResetBehaviorWeights();
-			TacticComponent.SetDefaultBehaviorWeights(_rangedCavalry);
-			_rangedCavalry.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
-			_rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-		}
-	}
+    protected override void ManageFormationCounts()
+    {
+        AssignTacticFormations();
+    }
 
-	private void Attack()
-	{
-		if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant)
-		{
-			SoundTacticalHorn(TacticComponent.AttackHornSoundIndex);
-		}
-		if (_mainInfantry != null)
-		{
-			_mainInfantry.AI.ResetBehaviorWeights();
-			_mainInfantry.AI.SetBehaviorWeight<BehaviorCharge>(1f);
-		}
-		if (_skirmishers != null)
-		{
-			_skirmishers.AI.ResetBehaviorWeights();
-			_skirmishers.AI.SetBehaviorWeight<BehaviorCharge>(1f);
-			//if (side == 0)
-			//{
-			//	_skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
-			//}
-			//else
-			//{
-			//	_skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Right;
-			//}
-		}
-		if (_archers != null)
-		{
-			_archers.AI.ResetBehaviorWeights();
-			_archers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
-			_archers.AI.SetBehaviorWeight<BehaviorSkirmishLine>(0f);
-			_archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(0f);
-		}
-		if (_leftCavalry != null)
-		{
-			_leftCavalry.AI.ResetBehaviorWeights();
-			SetDefaultBehaviorWeights(_leftCavalry);
-			_leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-			_leftCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
-		}
-		if (_rightCavalry != null)
-		{
-			_rightCavalry.AI.ResetBehaviorWeights();
-			SetDefaultBehaviorWeights(_rightCavalry);
-			_rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-			_rightCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
-		}
-		if (_rangedCavalry != null)
-		{
-			_rangedCavalry.AI.ResetBehaviorWeights();
-			TacticComponent.SetDefaultBehaviorWeights(_rangedCavalry);
-			_rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
-		}
-		IsTacticReapplyNeeded = false;
-	}
+    private void Advance()
+    {
+        if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant) SoundTacticalHorn(MoveHornSoundIndex);
+        if (_skirmishers != null)
+        {
+            _skirmishers.AI.ResetBehaviorWeights();
+            //TacticComponent.SetDefaultBehaviorWeights(_skirmishers);
+            //_skirmishers.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
+            if (side == 0)
+            {
+                _skirmishers.AI.Side = FormationAI.BehaviorSide.Left;
+                _skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide =
+                    FormationAI.BehaviorSide.Left;
+            }
+            else
+            {
+                _skirmishers.AI.Side = FormationAI.BehaviorSide.Right;
+                _skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide =
+                    FormationAI.BehaviorSide.Right;
+            }
+        }
 
-	private bool HasBattleBeenJoined()
-	{
-		return RBMAI.Utilities.HasBattleBeenJoined(_mainInfantry, _hasBattleBeenJoined, 85f);
-	}
+        if (_mainInfantry != null)
+        {
+            if (waitCountMainFormation < waitCountMainFormationMax)
+            {
+                _mainInfantry.AI.ResetBehaviorWeights();
+                SetDefaultBehaviorWeights(_mainInfantry);
+                _mainInfantry.AI.SetBehaviorWeight<BehaviorRegroup>(1.5f);
+                waitCountMainFormation++;
+                IsTacticReapplyNeeded = true;
+            }
+            else
+            {
+                _mainInfantry.AI.SetBehaviorWeight<BehaviorAdvance>(1f);
+                IsTacticReapplyNeeded = false;
+            }
+        }
 
-	protected override bool CheckAndSetAvailableFormationsChanged()
-	{
-		int num = base.Formations.Count((Formation f) => f.IsAIControlled);
-		bool num2 = num != _AIControlledFormationCount;
-		if (num2)
-		{
-			_AIControlledFormationCount = num;
-			IsTacticReapplyNeeded = true;
-		}
-		if (!num2)
-		{
-			if ((_mainInfantry == null || (_mainInfantry.CountOfUnits != 0 && _mainInfantry.QuerySystem.IsInfantryFormation)) && (_archers == null || (_archers.CountOfUnits != 0 && _archers.QuerySystem.IsRangedFormation)) && (_leftCavalry == null || (_leftCavalry.CountOfUnits != 0 && _leftCavalry.QuerySystem.IsCavalryFormation)) && (_rightCavalry == null || (_rightCavalry.CountOfUnits != 0 && _rightCavalry.QuerySystem.IsCavalryFormation)))
-			{
-				if (_rangedCavalry != null)
-				{
-					if (_rangedCavalry.CountOfUnits != 0)
-					{
-						return !_rangedCavalry.QuerySystem.IsRangedCavalryFormation;
-					}
-					return true;
-				}
-				return false;
-			}
-			return true;
-		}
-		return true;
-	}
+        if (_archers != null)
+        {
+            _archers.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_archers);
+            _archers.AI.SetBehaviorWeight<BehaviorSkirmishLine>(0f);
+            _archers.AI.SetBehaviorWeight<BehaviorSkirmish>(0f);
+            _archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
+            _archers.AI.SetBehaviorWeight<BehaviorRegroup>(1.25f);
+        }
 
-	protected override void TickOccasionally()
-	{
-		if (!base.AreFormationsCreated)
-		{
-			return;
-		}
-		if (CheckAndSetAvailableFormationsChanged())
-		{
-			ManageFormationCounts();
-			if (_hasBattleBeenJoined)
-			{
-				Attack();
-			}
-			else
-			{
-				Advance();
-			}
-			//IsTacticReapplyNeeded = false;
-		}
-		bool flag = HasBattleBeenJoined();
-		if (flag != _hasBattleBeenJoined || IsTacticReapplyNeeded)
-		{
-			_hasBattleBeenJoined = flag;
-			if (_hasBattleBeenJoined)
-			{
-				Attack();
-			}
-			else
-			{
-				Advance();
-			}
-			//IsTacticReapplyNeeded = false;
-		}
-		base.TickOccasionally();
-	}
+        if (_leftCavalry != null)
+        {
+            _leftCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_leftCavalry);
+            _leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
+            _leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+        }
 
-	protected override float GetTacticWeight()
-	{
-		float skirmisherCount = 0;
+        if (_rightCavalry != null)
+        {
+            _rightCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_rightCavalry);
+            _rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Right;
+            _rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+        }
 
-		float allyInfatryPower = 0f;
-		//float allyCavalryPower = 0f;
-		float enemyInfatryPower = 0f;
-		//float enemyArcherPower = 0f;
-		int allyInfCount = 0;
+        if (_rangedCavalry != null)
+        {
+            _rangedCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_rangedCavalry);
+            _rangedCavalry.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
+            _rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+        }
+    }
 
-		foreach (Team team in Mission.Current.Teams.ToList())
-		{
-			if (team.IsEnemyOf(base.team))
-			{
-				foreach (Formation formation in team.Formations.ToList())
-				{
-					if (formation.QuerySystem.IsInfantryFormation)
-					{
-						enemyInfatryPower += formation.QuerySystem.FormationPower;
-					}
-					//if (formation.QuerySystem.IsRangedFormation)
-					//{
-					//    enemyArcherPower += formation.QuerySystem.FormationPower;
-					//}
-				}
-			}
-		}
+    private void Attack()
+    {
+        if (team.IsPlayerTeam && !team.IsPlayerGeneral && team.IsPlayerSergeant)
+            SoundTacticalHorn(AttackHornSoundIndex);
+        if (_mainInfantry != null)
+        {
+            _mainInfantry.AI.ResetBehaviorWeights();
+            _mainInfantry.AI.SetBehaviorWeight<BehaviorCharge>(1f);
+        }
 
-		foreach (Team team in Mission.Current.Teams.ToList())
-		{
-			if (!team.IsEnemyOf(base.team))
-			{
-				foreach (Formation formation in team.Formations.ToList())
-				{
-					if (formation.QuerySystem.IsInfantryFormation)
-					{
-						allyInfatryPower += formation.QuerySystem.FormationPower;
-						allyInfCount += formation.CountOfUnits;
-					}
-					//if (formation.QuerySystem.IsCavalryFormation)
-					//{
-					//    allyCavalryPower += formation.QuerySystem.FormationPower;
-					//}
-				}
-			}
-		}
+        if (_skirmishers != null)
+        {
+            _skirmishers.AI.ResetBehaviorWeights();
+            _skirmishers.AI.SetBehaviorWeight<BehaviorCharge>(1f);
+            //if (side == 0)
+            //{
+            //	_skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
+            //}
+            //else
+            //{
+            //	_skirmishers.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Right;
+            //}
+        }
 
-		if (allyInfatryPower < enemyInfatryPower * 1.25f || allyInfCount < 60)
-		{
-			return 0.01f;
-		}
+        if (_archers != null)
+        {
+            _archers.AI.ResetBehaviorWeights();
+            _archers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
+            _archers.AI.SetBehaviorWeight<BehaviorSkirmishLine>(0f);
+            _archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(0f);
+        }
 
-		foreach (Agent agent in team.ActiveAgents.ToList())
-		{
-			if (agent.Formation != null && agent.Formation.QuerySystem.IsInfantryFormation)
-			{
-				if (RBMAI.Utilities.CheckIfSkirmisherAgent(agent, 2))
-				{
-					skirmisherCount++;
-				}
-			}
-		}
+        if (_leftCavalry != null)
+        {
+            _leftCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_leftCavalry);
+            _leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+            _leftCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
+        }
 
-		float num = team.QuerySystem.RangedCavalryRatio * (float)team.QuerySystem.MemberCount;
-		float skirmisherRatio = skirmisherCount / allyInfCount;
-		if (team.QuerySystem.InfantryRatio > 0.45f)
-		{
-			return team.QuerySystem.InfantryRatio * skirmisherRatio * 1.7f * (float)team.QuerySystem.MemberCount / ((float)team.QuerySystem.MemberCount - num) * (float)Math.Sqrt(team.QuerySystem.TotalPowerRatio);
-		}
-		else
-		{
-			return 0.01f;
-		}
-	}
+        if (_rightCavalry != null)
+        {
+            _rightCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_rightCavalry);
+            _rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+            _rightCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
+        }
+
+        if (_rangedCavalry != null)
+        {
+            _rangedCavalry.AI.ResetBehaviorWeights();
+            SetDefaultBehaviorWeights(_rangedCavalry);
+            _rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+        }
+
+        IsTacticReapplyNeeded = false;
+    }
+
+    private bool HasBattleBeenJoined()
+    {
+        return Utilities.HasBattleBeenJoined(_mainInfantry, _hasBattleBeenJoined, 85f);
+    }
+
+    protected override bool CheckAndSetAvailableFormationsChanged()
+    {
+        var num = Formations.Count(f => f.IsAIControlled);
+        var num2 = num != _AIControlledFormationCount;
+        if (num2)
+        {
+            _AIControlledFormationCount = num;
+            IsTacticReapplyNeeded = true;
+        }
+
+        if (!num2)
+        {
+            if ((_mainInfantry == null ||
+                 (_mainInfantry.CountOfUnits != 0 && _mainInfantry.QuerySystem.IsInfantryFormation)) &&
+                (_archers == null || (_archers.CountOfUnits != 0 && _archers.QuerySystem.IsRangedFormation)) &&
+                (_leftCavalry == null ||
+                 (_leftCavalry.CountOfUnits != 0 && _leftCavalry.QuerySystem.IsCavalryFormation)) &&
+                (_rightCavalry == null ||
+                 (_rightCavalry.CountOfUnits != 0 && _rightCavalry.QuerySystem.IsCavalryFormation)))
+            {
+                if (_rangedCavalry != null)
+                {
+                    if (_rangedCavalry.CountOfUnits != 0) return !_rangedCavalry.QuerySystem.IsRangedCavalryFormation;
+                    return true;
+                }
+
+                return false;
+            }
+
+            return true;
+        }
+
+        return true;
+    }
+
+    protected override void TickOccasionally()
+    {
+        if (!AreFormationsCreated) return;
+        if (CheckAndSetAvailableFormationsChanged())
+        {
+            ManageFormationCounts();
+            if (_hasBattleBeenJoined)
+                Attack();
+            else
+                Advance();
+            //IsTacticReapplyNeeded = false;
+        }
+
+        var flag = HasBattleBeenJoined();
+        if (flag != _hasBattleBeenJoined || IsTacticReapplyNeeded)
+        {
+            _hasBattleBeenJoined = flag;
+            if (_hasBattleBeenJoined)
+                Attack();
+            else
+                Advance();
+            //IsTacticReapplyNeeded = false;
+        }
+
+        base.TickOccasionally();
+    }
+
+    protected override float GetTacticWeight()
+    {
+        float skirmisherCount = 0;
+
+        var allyInfatryPower = 0f;
+        var allyCavalryPower = 0f;
+        var enemyInfatryPower = 0f;
+        var enemyArcherPower = 0f;
+        var allyInfCount = 0;
+
+        foreach (var team in Mission.Current.Teams.ToList())
+            if (team.IsEnemyOf(this.team))
+                foreach (var formation in team.Formations.ToList())
+                    if (formation.QuerySystem.IsInfantryFormation)
+                        enemyInfatryPower += formation.QuerySystem.FormationPower;
+        //if (formation.QuerySystem.IsRangedFormation)
+        //{
+        //    enemyArcherPower += formation.QuerySystem.FormationPower;
+        //}
+        foreach (var team in Mission.Current.Teams.ToList())
+            if (!team.IsEnemyOf(this.team))
+                foreach (var formation in team.Formations.ToList())
+                    if (formation.QuerySystem.IsInfantryFormation)
+                    {
+                        allyInfatryPower += formation.QuerySystem.FormationPower;
+                        allyInfCount += formation.CountOfUnits;
+                    }
+
+        //if (formation.QuerySystem.IsCavalryFormation)
+        //{
+        //    allyCavalryPower += formation.QuerySystem.FormationPower;
+        //}
+        if (allyInfatryPower < enemyInfatryPower * 1.25f || allyInfCount < 60) return 0.01f;
+
+        foreach (var agent in team.ActiveAgents.ToList())
+            if (agent.Formation != null && agent.Formation.QuerySystem.IsInfantryFormation)
+                if (Utilities.CheckIfSkirmisherAgent(agent, 2))
+                    skirmisherCount++;
+
+        var num = team.QuerySystem.RangedCavalryRatio * team.QuerySystem.MemberCount;
+        var skirmisherRatio = skirmisherCount / allyInfCount;
+        if (team.QuerySystem.InfantryRatio > 0.45f)
+            return team.QuerySystem.InfantryRatio * skirmisherRatio * 1.7f * team.QuerySystem.MemberCount /
+                (team.QuerySystem.MemberCount - num) * (float)Math.Sqrt(team.QuerySystem.TotalPowerRatio);
+        return 0.01f;
+    }
 }

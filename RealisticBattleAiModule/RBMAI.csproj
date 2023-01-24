@@ -10,7 +10,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RBMAI</RootNamespace>
-    <AssemblyName>RBMAI</AssemblyName>
+    <AssemblyName>ATO_RBMTroopAI</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -19,7 +19,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\bin\Win64_Shipping_Client\</OutputPath>
+    <OutputPath>..\..\ATO_RBM\bin\Win64_Shipping_Client\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -52,33 +52,13 @@
       <HintPath>..\..\SandBox\bin\Win64_Shipping_Client\SandBox.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SandBox.GauntletUI">
-      <HintPath>..\..\SandBox\bin\Win64_Shipping_Client\SandBox.GauntletUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SandBox.View">
-      <HintPath>..\..\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="SandBox.ViewModelCollection">
-      <HintPath>..\..\SandBox\bin\Win64_Shipping_Client\SandBox.ViewModelCollection.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="TaleWorlds.CampaignSystem">
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TaleWorlds.CampaignSystem.ViewModelCollection">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.ViewModelCollection.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="TaleWorlds.Core">
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.Core.ViewModelCollection">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Core.ViewModelCollection.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TaleWorlds.DotNet">
@@ -89,68 +69,20 @@
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TaleWorlds.Engine.GauntletUI">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.GauntletUI">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.GauntletUI.Data">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.Data.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.GauntletUI.ExtraWidgets">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.ExtraWidgets.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.GauntletUI.PrefabSystem">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.PrefabSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.GauntletUI.TooltipExtensions">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.TooltipExtensions.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.InputSystem">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.InputSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="TaleWorlds.Library">
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.LinQuick">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.LinQuick.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TaleWorlds.Localization">
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TaleWorlds.ModuleManager">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.ModuleManager.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade">
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TaleWorlds.MountAndBlade.Diamond">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.Diamond.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="TaleWorlds.MountAndBlade.GauntletUI">
       <HintPath>..\..\Native\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.GauntletUI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.MountAndBlade.GauntletUI.Widgets">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.GauntletUI.Widgets.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="TaleWorlds.MountAndBlade.Helpers">
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.Helpers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TaleWorlds.MountAndBlade.View">
@@ -165,11 +97,6 @@
       <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="TaleWorlds.ScreenSystem, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <!-- Bannerlord Module Assemblies  -->
   </ItemGroup>
   <!-- Files & Classes -->
@@ -177,6 +104,13 @@
     <Compile Include="AiModule\AgentAi.cs" />
     <Compile Include="AiModule\Behaviours.cs" />
     <Compile Include="AiModule\Frontline.cs" />
+    <Compile Include="AiModule\Posture\Posture.cs" />
+    <Compile Include="AiModule\Posture\AgentPostures.cs" />
+    <Compile Include="AiModule\Posture\PostureLogic.cs" />
+    <Compile Include="AiModule\Posture\BattleStatsLogic.cs" />
+    <Compile Include="AiModule\Posture\PostureVisualLogic.cs" />
+    <Compile Include="AiModule\Posture\BattleStatsVM.cs" />
+    <Compile Include="AiModule\Posture\PostureVisualVM.cs" />
     <Compile Include="AiModule\RbmBehaviors\RBMBehaviorArcherSkirmish.cs" />
     <Compile Include="AiModule\RbmBehaviors\RBMBehaviorCavalryCharge.cs" />
     <Compile Include="AiModule\RbmBehaviors\RBMBehaviorEmbolon.cs" />
@@ -203,8 +137,11 @@
   </ItemGroup>
   <!-- Post-Build -->
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>xcopy /d /y "$(SolutionDir)RBMXML\RBMAI_module_strings.xml" "$(SolutionDir)..\RBM\ModuleData\"
+xcopy /d /y "$(SolutionDir)RBMXML\GUI\Prefabs\CombatUI.xml" "$(SolutionDir)..\RBM\GUI\Prefabs\"
+xcopy /d /y "$(SolutionDir)RBMXML\GUI\Brushes\CombatUI.xml" "$(SolutionDir)..\RBM\GUI\Brushes\"
+xcopy /d /y "$(SolutionDir)SceneXmls\scene_positions\" "$(SolutionDir)..\RBM\ModuleData\scene_positions\"
+xcopy /d /y "$(SolutionDir)RBMXML\GUI\Prefabs\BattleStats.xml" "$(SolutionDir)..\RBM\GUI\Prefabs\"</PostBuildEvent>
   </PropertyGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
