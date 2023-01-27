@@ -1,4 +1,4 @@
-﻿using System;
+﻿/*using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -635,7 +635,7 @@ namespace RBMAI
 
     [HarmonyPatch(typeof(HumanAIComponent))]
     internal class OverrideFormation
-    {
+    { front
         [HarmonyPrefix]
         [HarmonyPatch("UpdateFormationMovement")]
         private static void PostfixUpdateFormationMovement(ref HumanAIComponent __instance, ref Agent ___Agent)
@@ -731,4 +731,4 @@ namespace RBMAI
             StandGround
         }
     }
-}
+}*/
