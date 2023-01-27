@@ -1,5 +1,6 @@
 ﻿using TaleWorlds.Engine.GauntletUI;
-namespace RBMConfig
+
+namespace RBMConfig.RBMConfigUI
 {
 	public class RBMConfigScreen : TaleWorlds.ScreenSystem.ScreenBase
 	{

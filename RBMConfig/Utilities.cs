@@ -11,8 +11,7 @@ namespace RBMConfig
 
         public static string GetConfigFolderPath()
         {
-           return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),
-            "Mount and Blade II Bannerlord", "Configs", "RBM");
+           return System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Mount and Blade II Bannerlord", "Configs", "RBM");
         }
     }
 }

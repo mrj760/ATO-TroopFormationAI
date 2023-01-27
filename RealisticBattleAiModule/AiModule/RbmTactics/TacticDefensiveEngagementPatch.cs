@@ -1,7 +1,8 @@
 ﻿using HarmonyLib;
+using RBMAI.AiModule.RbmBehaviors;
 using TaleWorlds.MountAndBlade;
 
-namespace RBMAI
+namespace RBMAI.AiModule.RbmTactics
 {
     [HarmonyPatch(typeof(TacticDefensiveEngagement))]
     internal class TacticDefensiveEngagementPatch
@@ -20,6 +21,11 @@ namespace RBMAI
         private static void PostfixDefend(ref Formation ____archers, ref Formation ____mainInfantry,
             ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
         {
+            ____mainInfantry?.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
+
+            FormationAI.BehaviorSide newside;
+
+
             if (____archers != null)
             {
                 ____archers.AI.SetBehaviorWeight<BehaviorSkirmish>(0f);
@@ -28,19 +34,21 @@ namespace RBMAI
                 ____archers.AI.SetBehaviorWeight<BehaviorRegroup>(1.25f);
             }
 
-            if (____mainInfantry != null) ____mainInfantry.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
+
             if (____rightCavalry != null)
             {
+                newside = FormationAI.BehaviorSide.Right;
+
                 ____rightCavalry.AI.ResetBehaviorWeights();
-                ____rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide =
-                    FormationAI.BehaviorSide.Right;
+                ____rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = newside;
             }
 
             if (____leftCavalry != null)
             {
+                newside = FormationAI.BehaviorSide.Left;
+
                 ____leftCavalry.AI.ResetBehaviorWeights();
-                ____leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide =
-                    FormationAI.BehaviorSide.Left;
+                ____leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = newside;
             }
 
             if (____rangedCavalry != null)
@@ -55,8 +63,9 @@ namespace RBMAI
         [HarmonyPostfix]
         [HarmonyPatch("Engage")]
         private static void PostfixAttack(ref Formation ____archers, ref Formation ____mainInfantry,
-            ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
+                ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
         {
+
             if (____archers != null)
             {
                 ____archers.AI.ResetBehaviorWeights();

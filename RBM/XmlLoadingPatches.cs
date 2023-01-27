@@ -17,8 +17,8 @@ namespace RBM
             static bool Prefix(ref XmlDocument xmlDocument1, ref XmlDocument xmlDocument2, ref XmlDocument __result)
             {
                 return true;
-                XDocument originalXml = MBObjectManager.ToXDocument(xmlDocument1);
-                XDocument mergedXml = MBObjectManager.ToXDocument(xmlDocument2);
+                var originalXml = MBObjectManager.ToXDocument(xmlDocument1);
+                var mergedXml = MBObjectManager.ToXDocument(xmlDocument2);
 
                 var nodesToRemoveArray = new List<XElement>();
                 if(xmlDocument2.BaseURI.Contains("RBMCombat"))

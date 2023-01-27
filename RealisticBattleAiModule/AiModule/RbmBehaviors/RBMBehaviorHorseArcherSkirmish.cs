@@ -3,7 +3,7 @@ using TaleWorlds.Engine;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 
-namespace RBMAI
+namespace RBMAI.AiModule.RbmBehaviors
 {
     public class RBMBehaviorHorseArcherSkirmish : BehaviorComponent
     {
@@ -18,52 +18,49 @@ namespace RBMAI
             BehaviorCoherence = 0.5f;
         }
 
-        protected override void CalculateCurrentOrder()
+        protected sealed override void CalculateCurrentOrder()
         {
-            var position = Formation.QuerySystem.MedianPosition;
+            var fqs = Formation.QuerySystem;
+            var position = fqs.MedianPosition;
             var targetFormation = Utilities.FindSignificantEnemy(Formation, true, true, false, false, false);
             _isEnemyReachable = targetFormation != null && (!(Formation.Team.TeamAI is TeamAISiegeComponent) ||
                                                             !TeamAISiegeComponent.IsFormationInsideCastle(
                                                                 targetFormation, false));
             if (!_isEnemyReachable)
             {
-                position.SetVec2(Formation.QuerySystem.AveragePosition);
+                position.SetVec2(fqs.AveragePosition);
             }
             else
             {
-                var num = (Formation.QuerySystem.AverageAllyPosition - Formation.Team.QuerySystem.AverageEnemyPosition)
+                var num = (fqs.AverageAllyPosition - Formation.Team.QuerySystem.AverageEnemyPosition)
                     .LengthSquared <= 3600f;
-                var engaging = _engaging;
-                engaging = _engaging = num || (!_engaging
-                    ? (Formation.QuerySystem.AveragePosition - Formation.QuerySystem.AverageAllyPosition)
-                    .LengthSquared <= 3600f
-                    : !(Formation.QuerySystem.UnderRangedAttackRatio * 0.5f >
-                        Formation.QuerySystem.MakingRangedAttackRatio));
+                _engaging = num 
+                            || (!_engaging 
+                                ? (fqs.AveragePosition - fqs.AverageAllyPosition).LengthSquared <= 3600f 
+                                : !(fqs.UnderRangedAttackRatio * 0.5f > fqs.MakingRangedAttackRatio));
                 if (_engaging)
                 {
                     if (targetFormation != null)
                     {
                         var distance = 60f;
-                        if (!Formation.QuerySystem.IsRangedCavalryFormation) distance = 30f;
+                        if (!fqs.IsRangedCavalryFormation) distance = 30f;
                         var ellipse = new Ellipse(targetFormation.QuerySystem.MedianPosition.AsVec2, distance,
                             targetFormation.Width * 0.5f, targetFormation.Direction);
-                        position.SetVec2(ellipse.GetTargetPos(Formation.QuerySystem.AveragePosition, 35f));
-                        CurrentFacingOrder =
-                            FacingOrder.FacingOrderLookAtDirection(targetFormation.QuerySystem.AveragePosition);
-                        //Formation.FacingOrder = FacingOrder.FacingOrderLookAtDirection((targetFormation.QuerySystem.MedianPosition.AsVec2 - position.AsVec2).Normalized());
+                        position.SetVec2(ellipse.GetTargetPos(fqs.AveragePosition, 35f));
+                        CurrentFacingOrder = FacingOrder.FacingOrderLookAtDirection(targetFormation.QuerySystem.AveragePosition);
                     }
                 }
                 else
                 {
                     position = new WorldPosition(Mission.Current.Scene,
-                        new Vec3(Formation.QuerySystem.AverageAllyPosition,
+                        new Vec3(fqs.AverageAllyPosition,
                             Formation.Team.QuerySystem.MedianPosition.GetNavMeshZ() + 100f));
                 }
             }
 
             if (position.GetNavMesh() == UIntPtr.Zero || !Mission.Current.IsPositionInsideBoundaries(position.AsVec2))
             {
-                position = Formation.QuerySystem.MedianPosition;
+                position = fqs.MedianPosition;
                 CurrentOrder = MovementOrder.MovementOrderMove(position);
             }
             else
@@ -92,30 +89,36 @@ namespace RBMAI
 
         protected override float GetAiWeight()
         {
-            if (Formation != null && Formation.QuerySystem.IsCavalryFormation)
+            var fqs = Formation.QuerySystem;
+
+            if (Formation != null && fqs.IsCavalryFormation)
             {
-                if (Utilities.CheckIfMountedSkirmishFormation(Formation, 0.6f))
-                    return 5f;
-                return 0f;
+                return Utilities.CheckIfMountedSkirmishFormation(Formation, 0.6f) ? 5f : 0f;
             }
 
-            if (Formation != null && Formation.QuerySystem.IsRangedCavalryFormation)
+            if (Formation != null && fqs.IsRangedCavalryFormation)
             {
                 var enemyFormation = Utilities.FindSignificantEnemy(Formation, false, false, true, false, false);
-                if (enemyFormation != null && enemyFormation.QuerySystem.IsCavalryFormation &&
-                    Formation.QuerySystem.MedianPosition.AsVec2.Distance(enemyFormation.QuerySystem.MedianPosition
-                        .AsVec2) < 55f && enemyFormation.CountOfUnits >= Formation.CountOfUnits * 0.5f) return 0.01f;
-                if (!_isEnemyReachable) return 0.01f;
-                return 100f;
+                var efqs = enemyFormation.QuerySystem;
+                if (efqs.IsCavalryFormation 
+                    && fqs.MedianPosition.AsVec2.Distance(efqs.MedianPosition.AsVec2) < 55f 
+                    && enemyFormation.CountOfUnits >= Formation.CountOfUnits * 0.5f)
+                {
+                    return 0.01f;
+                }
+
+                return !_isEnemyReachable ? 0.01f : 100f;
             }
 
-            var countOfSkirmishers = 0;
-            Formation.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
+            var countOfSkirmishers = 0f;
+            Formation?.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
             {
                 if (Utilities.CheckIfSkirmisherAgent(agent, 1)) countOfSkirmishers++;
             });
-            if (countOfSkirmishers / Formation.CountOfUnits > 0.6f)
+
+            if (Formation != null && countOfSkirmishers / Formation.CountOfUnits > 0.6f)
                 return 1f;
+
             return 0f;
         }
 
@@ -127,7 +130,7 @@ namespace RBMAI
 
             private readonly float _halfLength;
 
-            private readonly Vec2 _direction;
+            private Vec2 _direction;
 
             public Ellipse(Vec2 center, float radius, float halfLength, Vec2 direction)
             {
@@ -147,6 +150,7 @@ namespace RBMAI
                 var vec5 = vec4.DotProduct(vec) * vec;
                 var flag2 = vec5.Length < _halfLength;
                 var flag3 = true;
+
                 if (flag2)
                 {
                     position = _center + vec5 + _direction * (_radius * (flag ? 1 : -1));
@@ -161,52 +165,59 @@ namespace RBMAI
                 var vec7 = _center + vec5;
                 var num = (float)Math.PI * 2f * _radius;
                 while (distance > 0f)
-                    if (flag2 && flag)
+                    switch (flag2)
                     {
-                        var num2 = (vec2 - vec7).Length < distance ? (vec2 - vec7).Length : distance;
-                        position = vec7 + (vec2 - vec7).Normalized() * num2;
-                        position += _direction * _radius;
-                        distance -= num2;
-                        flag2 = false;
-                        flag3 = true;
-                    }
-                    else if (!flag2 && flag3)
-                    {
-                        var v = (position - vec2).Normalized();
-                        var num3 = MathF.Acos(MBMath.ClampFloat(_direction.DotProduct(v), -1f, 1f));
-                        var num4 = (float)Math.PI * 2f * (distance / num);
-                        var num5 = num3 + num4 < (float)Math.PI ? num3 + num4 : (float)Math.PI;
-                        var num6 = (num5 - num3) / (float)Math.PI * (num / 2f);
-                        var direction = _direction;
-                        direction.RotateCCW(num5);
-                        position = vec2 + direction * _radius;
-                        distance -= num6;
-                        flag2 = true;
-                        flag = false;
-                    }
-                    else if (flag2)
-                    {
-                        var num7 = (vec3 - vec7).Length < distance ? (vec3 - vec7).Length : distance;
-                        position = vec7 + (vec3 - vec7).Normalized() * num7;
-                        position -= _direction * _radius;
-                        distance -= num7;
-                        flag2 = false;
-                        flag3 = false;
-                    }
-                    else
-                    {
-                        var vec8 = (position - vec3).Normalized();
-                        var num8 = MathF.Acos(MBMath.ClampFloat(_direction.DotProduct(vec8), -1f, 1f));
-                        var num9 = (float)Math.PI * 2f * (distance / num);
-                        var num10 = num8 - num9 > 0f ? num8 - num9 : 0f;
-                        var num11 = num8 - num10;
-                        var num12 = num11 / (float)Math.PI * (num / 2f);
-                        var vec9 = vec8;
-                        vec9.RotateCCW(num11);
-                        position = vec3 + vec9 * _radius;
-                        distance -= num12;
-                        flag2 = true;
-                        flag = true;
+                        case true when flag:
+                        {
+                            var num2 = (vec2 - vec7).Length < distance ? (vec2 - vec7).Length : distance;
+                            position = vec7 + (vec2 - vec7).Normalized() * num2;
+                            position += _direction * _radius;
+                            distance -= num2;
+                            flag2 = false;
+                            flag3 = true;
+                            break;
+                        }
+                        case false when flag3:
+                        {
+                            var v = (position - vec2).Normalized();
+                            var num3 = MathF.Acos(MBMath.ClampFloat(_direction.DotProduct(v), -1f, 1f));
+                            var num4 = (float)Math.PI * 2f * (distance / num);
+                            var num5 = num3 + num4 < (float)Math.PI ? num3 + num4 : (float)Math.PI;
+                            var num6 = (num5 - num3) / (float)Math.PI * (num / 2f);
+                            var direction = _direction;
+                            direction.RotateCCW(num5);
+                            position = vec2 + direction * _radius;
+                            distance -= num6;
+                            flag2 = true;
+                            flag = false;
+                            break;
+                        }
+                        case true:
+                        {
+                            var num7 = (vec3 - vec7).Length < distance ? (vec3 - vec7).Length : distance;
+                            position = vec7 + (vec3 - vec7).Normalized() * num7;
+                            position -= _direction * _radius;
+                            distance -= num7;
+                            flag2 = false;
+                            flag3 = false;
+                            break;
+                        }
+                        default:
+                        {
+                            var vec8 = (position - vec3).Normalized();
+                            var num8 = MathF.Acos(MBMath.ClampFloat(_direction.DotProduct(vec8), -1f, 1f));
+                            var num9 = (float)Math.PI * 2f * (distance / num);
+                            var num10 = num8 - num9 > 0f ? num8 - num9 : 0f;
+                            var num11 = num8 - num10;
+                            var num12 = num11 / (float)Math.PI * (num / 2f);
+                            var vec9 = vec8;
+                            vec9.RotateCCW(num11);
+                            position = vec3 + vec9 * _radius;
+                            distance -= num12;
+                            flag2 = true;
+                            flag = true;
+                            break;
+                        }
                     }
 
                 return position;

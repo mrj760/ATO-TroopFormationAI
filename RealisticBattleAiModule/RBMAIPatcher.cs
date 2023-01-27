@@ -1,4 +1,5 @@
 ﻿using HarmonyLib;
+using RBMAI.AiModule;
 using SandBox.Missions.MissionLogics;
 using TaleWorlds.MountAndBlade;
 

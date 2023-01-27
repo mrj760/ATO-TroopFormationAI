@@ -7,9 +7,6 @@ namespace RBMConfig
     public static class RBMConfig
     {
         public static XmlDocument xmlConfig = new XmlDocument();
-        public static float ThrustMagnitudeModifier = 0.02f;
-        public static float OneHandedThrustDamageBonus = 50f;
-        public static float TwoHandedThrustDamageBonus = 50f;
         //modules
         public static bool rbmTournamentEnabled = true;
         public static bool rbmAiEnabled = true;
@@ -32,8 +29,6 @@ namespace RBMConfig
         public static float maceBluntModifier = 1f;
         public static float armorThresholdModifier = 1f;
         public static float bluntTraumaBonus = 1f;
-        public static RBMCombatConfigPriceMultipliers priceMultipliers = new RBMCombatConfigPriceMultipliers();
-        public static List<RBMCombatConfigWeaponType> weaponTypesFactors = new List<RBMCombatConfigWeaponType>();
 
         public static void LoadConfig()
         {
@@ -66,40 +61,13 @@ namespace RBMConfig
                 developerMode = true;
             }
             //modules
-            //rbmTournamentEnabled = xmlConfig.SelectSingleNode("/Config/RBMTournament/Enabled").InnerText.Equals("1");
             rbmTournamentEnabled = false;
-            //rbmAiEnabled = xmlConfig.SelectSingleNode("/Config/RBMAI/Enabled").InnerText.Equals("1");
             rbmAiEnabled = true;
-            //rbmCombatEnabled = xmlConfig.SelectSingleNode("/Config/RBMCombat/Enabled").InnerText.Equals("1");
             rbmCombatEnabled = false;
             //RBMAI
-            //postureEnabled = xmlConfig.SelectSingleNode("/Config/RBMAI/PostureEnabled").InnerText.Equals("1");
-            //postureGUIEnabled = xmlConfig.SelectSingleNode("/Config/RBMAI/PostureGUIEnabled").InnerText.Equals("1");
-            //vanillaCombatAi = xmlConfig.SelectSingleNode("/Config/RBMAI/VanillaCombatAi").InnerText.Equals("1");
             postureEnabled = false;
             postureGUIEnabled = false;
             vanillaCombatAi = false;
-            //if (xmlConfig.SelectSingleNode("/Config/RBMAI/PlayerPostureMultiplier") != null)
-            //{
-            //    switch (xmlConfig.SelectSingleNode("/Config/RBMAI/PlayerPostureMultiplier").InnerText)
-            //    {
-            //        case "0":
-            //            {
-            //                playerPostureMultiplier = 1f;
-            //                break;
-            //            }
-            //        case "1":
-            //            {
-            //                playerPostureMultiplier = 1.5f;
-            //                break;
-            //            }
-            //        case "2":
-            //            {
-            //                playerPostureMultiplier = 2f;
-            //                break;
-            //            }
-            //    }
-            //}
             //RBMCombat
             if (xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorStatusUIEnabled") != null)
             {
@@ -107,9 +75,9 @@ namespace RBMConfig
             }
             else
             {
-                XmlNode ArmorStatusUIEnabled = xmlConfig.CreateNode(XmlNodeType.Element, "ArmorStatusUIEnabled", null);
+                var ArmorStatusUIEnabled = xmlConfig.CreateNode(XmlNodeType.Element, "ArmorStatusUIEnabled", null);
                 ArmorStatusUIEnabled.InnerText = "1";
-                xmlConfig.SelectSingleNode("/Config/RBMCombat/Global").AppendChild(ArmorStatusUIEnabled);
+                xmlConfig.SelectSingleNode("/Config/RBMCombat/Global")?.AppendChild(ArmorStatusUIEnabled);
             }
 
             if (xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/RealisticArrowArc") != null)
@@ -118,60 +86,17 @@ namespace RBMConfig
             }
             else
             {
-                XmlNode RealisticArrowArc = xmlConfig.CreateNode(XmlNodeType.Element, "RealisticArrowArc", null);
+                var RealisticArrowArc = xmlConfig.CreateNode(XmlNodeType.Element, "RealisticArrowArc", null);
                 RealisticArrowArc.InnerText = "0";
-                xmlConfig.SelectSingleNode("/Config/RBMCombat/Global").AppendChild(RealisticArrowArc);
+                xmlConfig.SelectSingleNode("/Config/RBMCombat/Global")?.AppendChild(RealisticArrowArc);
             }
-
-            //armorMultiplier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorMultiplier").InnerText);
-            //armorPenetrationMessage = xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorPenetrationMessage").InnerText.Equals("1");
-            //betterArrowVisuals = xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/BetterArrowVisuals").InnerText.Equals("1");
-            //passiveShoulderShields = xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/PassiveShoulderShields").InnerText.Equals("1");
-            //troopOverhaulActive = xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/TroopOverhaulActive").InnerText.Equals("1");
-            //realisticRangedReload = xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/RealisticRangedReload").InnerText;
-            //maceBluntModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/MaceBluntModifier").InnerText);
-            //armorThresholdModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorThresholdModifier").InnerText);
-            //bluntTraumaBonus = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/BluntTraumaBonus").InnerText);
-            //foreach (XmlNode weaponTypeNode in xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes").ChildNodes) ;
-            armorMultiplier = 1;
-            armorPenetrationMessage = false;
-            betterArrowVisuals = false;
-            passiveShoulderShields = false;
-            troopOverhaulActive = false;
-            realisticRangedReload = "";
-            maceBluntModifier = 1;
-            armorThresholdModifier = 1;
-            bluntTraumaBonus = 1;
-            foreach(XmlNode weaponTypeNode in xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes").ChildNodes)
-            {
-                RBMCombatConfigWeaponType weaponTypeFactors = new RBMCombatConfigWeaponType();
-                weaponTypeFactors.weaponType = weaponTypeNode.Name;
-                weaponTypeFactors.ExtraBluntFactorCut = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraBluntFactorCut").InnerText);
-                weaponTypeFactors.ExtraBluntFactorPierce = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraBluntFactorPierce").InnerText);
-                weaponTypeFactors.ExtraBluntFactorBlunt = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraBluntFactorBlunt").InnerText);
-                weaponTypeFactors.ExtraArmorThresholdFactorPierce = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraArmorThresholdFactorPierce").InnerText);
-                weaponTypeFactors.ExtraArmorThresholdFactorCut = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraArmorThresholdFactorCut").InnerText);
-                weaponTypeFactors.ExtraArmorSkillDamageAbsorb = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeNode.Name + "/ExtraArmorSkillDamageAbsorb").InnerText);
-                weaponTypesFactors.Add(weaponTypeFactors);
-            }
-            priceMultipliers.ArmorPriceModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/ArmorPriceModifier").InnerText);
-            priceMultipliers.WeaponPriceModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/WeaponPriceModifier").InnerText);
-            priceMultipliers.HorsePriceModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/HorsePriceModifier").InnerText);
-            priceMultipliers.TradePriceModifier = float.Parse(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/TradePriceModifier").InnerText);
 
             saveXmlConfig();
         }
 
         public static void setInnerTextBoolean(XmlNode xmlConfig, bool value)
         {
-            if (value)
-            {
-                xmlConfig.InnerText = "1";
-            }
-            else
-            {
-                xmlConfig.InnerText = "0";
-            }
+            xmlConfig.InnerText = value ? "1" : "0";
         }
 
         public static void setInnerText(XmlNode xmlConfig, string value)
@@ -193,6 +118,7 @@ namespace RBMConfig
             setInnerTextBoolean(xmlConfig.SelectSingleNode("/Config/RBMAI/PostureEnabled"), postureEnabled);
             setInnerTextBoolean(xmlConfig.SelectSingleNode("/Config/RBMAI/PostureGUIEnabled"), postureGUIEnabled);
             setInnerTextBoolean(xmlConfig.SelectSingleNode("/Config/RBMAI/VanillaCombatAi"), vanillaCombatAi);
+
             switch (playerPostureMultiplier)
             {
                 case 1f:
@@ -212,6 +138,7 @@ namespace RBMConfig
                         break;
                     }
             }
+
             //RBMCombat
             setInnerTextBoolean(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorStatusUIEnabled"), armorStatusUIEnabled);
             setInnerTextBoolean(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/RealisticArrowArc"), realisticArrowArc);
@@ -224,35 +151,10 @@ namespace RBMConfig
             setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/MaceBluntModifier"), maceBluntModifier.ToString());
             setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/ArmorThresholdModifier"), armorThresholdModifier.ToString());
             setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/Global/BluntTraumaBonus"), bluntTraumaBonus.ToString());
-
-            foreach (RBMCombatConfigWeaponType weaponTypeFactors in weaponTypesFactors)
-            {
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraBluntFactorCut"), weaponTypeFactors.ExtraBluntFactorCut.ToString());
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraBluntFactorPierce"), weaponTypeFactors.ExtraBluntFactorPierce.ToString());
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraBluntFactorBlunt"), weaponTypeFactors.ExtraBluntFactorBlunt.ToString());
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraArmorThresholdFactorPierce"), weaponTypeFactors.ExtraArmorThresholdFactorPierce.ToString());
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraArmorThresholdFactorCut"), weaponTypeFactors.ExtraArmorThresholdFactorCut.ToString());
-                setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/WeaponTypes/" + weaponTypeFactors.weaponType + "/ExtraArmorSkillDamageAbsorb"), weaponTypeFactors.ExtraArmorSkillDamageAbsorb.ToString());
-            }
-
-            setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/ArmorPriceModifier"), priceMultipliers.ArmorPriceModifier.ToString());
-            setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/WeaponPriceModifier"), priceMultipliers.WeaponPriceModifier.ToString());
-            setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/HorsePriceModifier"), priceMultipliers.HorsePriceModifier.ToString());
-            setInnerText(xmlConfig.SelectSingleNode("/Config/RBMCombat/PriceModifiers/TradePriceModifier"), priceMultipliers.TradePriceModifier.ToString());
+            
 
             xmlConfig.Save(Utilities.GetConfigFilePath());
 
-        }
-
-        public static RBMCombatConfigWeaponType getWeaponTypeFactors(string weaponType)
-        {
-            foreach(RBMCombatConfigWeaponType weaponTypeFactors in weaponTypesFactors)
-            {
-                if (weaponTypeFactors.weaponType.Equals(weaponType)){
-                    return weaponTypeFactors;
-                }
-            }
-            return null;
         }
 
     }

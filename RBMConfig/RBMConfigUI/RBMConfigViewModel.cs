@@ -1,17 +1,14 @@
 ﻿// CunningLords.Interaction.CunningLordsMenuViewModel
+
 using System.Collections.Generic;
 using TaleWorlds.Core.ViewModelCollection.Selector;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 
-namespace RBMConfig
+namespace RBMConfig.RBMConfigUI
 {
-	internal class RBMConfigViewModel : ViewModel
-	{
-		private string _doneText;
-
-		private string _cancelText;
-
+    internal class RBMConfigViewModel : ViewModel
+    {
         public TextViewModel ArmorStatusUIEnabledText { get; }
         public SelectorVM<SelectorItemVM> ArmorStatusUIEnabled { get; }
 
@@ -19,366 +16,137 @@ namespace RBMConfig
         public SelectorVM<SelectorItemVM> RealisticArrowArc { get; }
 
         public TextViewModel PostureSystemEnabledText { get; }
-		public SelectorVM<SelectorItemVM> PostureSystemEnabled { get; }
+        public SelectorVM<SelectorItemVM> PostureSystemEnabled { get; }
 
-		public TextViewModel PlayerPostureMultiplierText { get; }
-		public SelectorVM<SelectorItemVM> PlayerPostureMultiplier { get; }
+        public TextViewModel PlayerPostureMultiplierText { get; }
+        public SelectorVM<SelectorItemVM> PlayerPostureMultiplier { get; }
 
-		public TextViewModel PostureGUIEnabledText { get; }
-		public SelectorVM<SelectorItemVM> PostureGUIEnabled { get; }
+        public TextViewModel PostureGUIEnabledText { get; }
+        public SelectorVM<SelectorItemVM> PostureGUIEnabled { get; }
 
-		public TextViewModel VanillaCombatAiText { get; }
-		public SelectorVM<SelectorItemVM> VanillaCombatAi { get; }
+        public TextViewModel VanillaCombatAiText { get; }
+        public SelectorVM<SelectorItemVM> VanillaCombatAi { get; }
 
-		public TextViewModel ActiveTroopOverhaulText { get; }
-		public SelectorVM<SelectorItemVM> ActiveTroopOverhaul { get; }
+        public TextViewModel ActiveTroopOverhaulText { get; }
+        public SelectorVM<SelectorItemVM> ActiveTroopOverhaul { get; }
 
-		public TextViewModel RangedReloadSpeedText { get; }
-		public SelectorVM<SelectorItemVM> RangedReloadSpeed { get; }
+        public TextViewModel RangedReloadSpeedText { get; }
+        public SelectorVM<SelectorItemVM> RangedReloadSpeed { get; }
 
-		public TextViewModel PassiveShoulderShieldsText { get; }
-		public SelectorVM<SelectorItemVM> PassiveShoulderShields { get; }
+        public TextViewModel PassiveShoulderShieldsText { get; }
+        public SelectorVM<SelectorItemVM> PassiveShoulderShields { get; }
 
-		public TextViewModel BetterArrowVisualsText { get; }
-		public SelectorVM<SelectorItemVM> BetterArrowVisuals { get; }
+        public TextViewModel BetterArrowVisualsText { get; }
+        public SelectorVM<SelectorItemVM> BetterArrowVisuals { get; }
 
-		public SelectorVM<SelectorItemVM> RBMCombatEnabled { get; }
+        public SelectorVM<SelectorItemVM> RBMCombatEnabled { get; }
 
-		public SelectorVM<SelectorItemVM> RBMAIEnabled { get; }
+        public SelectorVM<SelectorItemVM> RBMAIEnabled { get; }
 
-		public SelectorVM<SelectorItemVM> RBMTournamentEnabled { get; }
+        public SelectorVM<SelectorItemVM> RBMTournamentEnabled { get; }
 
 
-		[DataSourceProperty]
-		public string CancelText => _cancelText;
+        public RBMConfigViewModel()
+        {
+            base.RefreshValues();
 
-		[DataSourceProperty]
-		public string DoneText => _doneText;
+            var troopOverhaulOnOff = new List<string> { "Inactive", "Active (Recommended)", };
+            ActiveTroopOverhaulText = new TextViewModel(new TextObject("Troop Overhaul"));
+            ActiveTroopOverhaul = new SelectorVM<SelectorItemVM>(troopOverhaulOnOff, 0, null);
 
-		public RBMConfigViewModel()
-		{
-			_doneText = new TextObject("{=ATDone}Done").ToString();
-			_cancelText = new TextObject("{=ATCancel}Cancel").ToString();
-			RefreshValues();
-			//RbmConfigData data;
-			List<string> troopOverhaulOnOff = new List<string> { "Inactive", "Active (Recommended)", };
-			ActiveTroopOverhaulText = new TextViewModel(new TextObject("Troop Overhaul"));
-			ActiveTroopOverhaul = new SelectorVM<SelectorItemVM>(troopOverhaulOnOff, 0, null);
+            var rangedReloadSpeed = new List<string> { "Vanilla", "Realistic", "Semi-realistic (Default)" };
+            RangedReloadSpeedText = new TextViewModel(new TextObject("Ranged reload speed"));
+            RangedReloadSpeed = new SelectorVM<SelectorItemVM>(rangedReloadSpeed, 0, null);
 
-			List<string> rangedReloadSpeed = new List<string> { "Vanilla", "Realistic", "Semi-realistic (Default)" };
-			RangedReloadSpeedText = new TextViewModel(new TextObject("Ranged reload speed"));
-			RangedReloadSpeed = new SelectorVM<SelectorItemVM>(rangedReloadSpeed, 0, null);
+            var passiveShoulderShields = new List<string> { "Disabled (Default)", "Enabled" };
+            PassiveShoulderShieldsText = new TextViewModel(new TextObject("Passive Shoulder Shields"));
+            PassiveShoulderShields = new SelectorVM<SelectorItemVM>(passiveShoulderShields, 0, null);
 
-			List<string> passiveShoulderShields = new List<string> { "Disabled (Default)", "Enabled" };
-			PassiveShoulderShieldsText = new TextViewModel(new TextObject("Passive Shoulder Shields"));
-			PassiveShoulderShields = new SelectorVM<SelectorItemVM>(passiveShoulderShields, 0, null);
+            var betterArrowVisuals = new List<string> { "Disabled", "Enabled (Default)" };
+            BetterArrowVisualsText = new TextViewModel(new TextObject("Better Arrow Visuals"));
+            BetterArrowVisuals = new SelectorVM<SelectorItemVM>(betterArrowVisuals, 0, null);
 
-			List<string> betterArrowVisuals = new List<string> { "Disabled", "Enabled (Default)" };
-			BetterArrowVisualsText = new TextViewModel(new TextObject("Better Arrow Visuals"));
-			BetterArrowVisuals = new SelectorVM<SelectorItemVM>(betterArrowVisuals, 0, null);
-
-            List<string> armorStatusUIEnabled = new List<string> { "Disabled", "Enabled (Default)", };
+            var armorStatusUIEnabled = new List<string> { "Disabled", "Enabled (Default)", };
             ArmorStatusUIEnabledText = new TextViewModel(new TextObject("Armor Status GUI"));
             ArmorStatusUIEnabled = new SelectorVM<SelectorItemVM>(armorStatusUIEnabled, 0, null);
 
-            List<string> realisticArrowArc = new List<string> { "Disabled (Default)", "Enabled", };
+            var realisticArrowArc = new List<string> { "Disabled (Default)", "Enabled", };
             RealisticArrowArcText = new TextViewModel(new TextObject("Realistic Arrow Arc"));
             RealisticArrowArc = new SelectorVM<SelectorItemVM>(realisticArrowArc, 0, null);
 
-            if (RBMConfig.troopOverhaulActive)
-			{
-				ActiveTroopOverhaul.SelectedIndex = 1;
-			}
-			else
-			{
-				ActiveTroopOverhaul.SelectedIndex = 0;
-			}
+            ActiveTroopOverhaul.SelectedIndex = RBMConfig.troopOverhaulActive ? 1 : 0;
 
-			if (RBMConfig.realisticRangedReload.Equals("0"))
-			{
-				RangedReloadSpeed.SelectedIndex = 0;
-			}
-			else if (RBMConfig.realisticRangedReload.Equals("1"))
-			{
-				RangedReloadSpeed.SelectedIndex = 1;
-			}
-			else if (RBMConfig.realisticRangedReload.Equals("2"))
-			{
-				RangedReloadSpeed.SelectedIndex = 2;
-			}
-
-			if (RBMConfig.passiveShoulderShields)
-			{
-				PassiveShoulderShields.SelectedIndex = 1;
-			}
-			else
-			{
-				PassiveShoulderShields.SelectedIndex = 0;
-			}
-
-			if (RBMConfig.betterArrowVisuals)
-			{
-				BetterArrowVisuals.SelectedIndex = 1;
-			}
-			else
-			{
-				BetterArrowVisuals.SelectedIndex = 0;
-			}
-
-            if (RBMConfig.armorStatusUIEnabled)
+            switch (RBMConfig.realisticRangedReload)
             {
-                ArmorStatusUIEnabled.SelectedIndex = 1;
-            }
-            else
-            {
-                ArmorStatusUIEnabled.SelectedIndex = 0;
+                case "0":
+                    RangedReloadSpeed.SelectedIndex = 0;
+                    break;
+                case "1":
+                    RangedReloadSpeed.SelectedIndex = 1;
+                    break;
+                case "2":
+                    RangedReloadSpeed.SelectedIndex = 2;
+                    break;
             }
 
-            if (RBMConfig.realisticArrowArc)
+            PassiveShoulderShields.SelectedIndex = RBMConfig.passiveShoulderShields ? 1 : 0;
+
+            BetterArrowVisuals.SelectedIndex = RBMConfig.betterArrowVisuals ? 1 : 0;
+
+            ArmorStatusUIEnabled.SelectedIndex = RBMConfig.armorStatusUIEnabled ? 1 : 0;
+
+            RealisticArrowArc.SelectedIndex = RBMConfig.realisticArrowArc ? 1 : 0;
+
+            var postureOptions = new List<string> { "Disabled", "Enabled (Default)" };
+            PostureSystemEnabledText = new TextViewModel(new TextObject("Posture System"));
+            PostureSystemEnabled = new SelectorVM<SelectorItemVM>(postureOptions, 0, null);
+
+            var playerPostureMultiplierOptions = new List<string> { "1x (Default)", "1.5x", "2x" };
+            PlayerPostureMultiplierText = new TextViewModel(new TextObject("Player Posture Multiplier"));
+            PlayerPostureMultiplier = new SelectorVM<SelectorItemVM>(playerPostureMultiplierOptions, 0, null);
+
+            var postureGUIOptions = new List<string> { "Disabled", "Enabled (Default)" };
+            PostureGUIEnabledText = new TextViewModel(new TextObject("Posture GUI"));
+            PostureGUIEnabled = new SelectorVM<SelectorItemVM>(postureGUIOptions, 0, null);
+
+            var vanillaCombatAiOptions = new List<string> { "Disabled (Default)", "Enabled" };
+            VanillaCombatAiText = new TextViewModel(new TextObject("Vanilla AI Block/Parry/Attack"));
+            VanillaCombatAi = new SelectorVM<SelectorItemVM>(vanillaCombatAiOptions, 0, null);
+
+            switch (RBMConfig.playerPostureMultiplier)
             {
-                RealisticArrowArc.SelectedIndex = 1;
-            }
-            else
-            {
-                RealisticArrowArc.SelectedIndex = 0;
-            }
-
-            List<string> postureOptions = new List<string> { "Disabled", "Enabled (Default)" };
-			PostureSystemEnabledText = new TextViewModel(new TextObject("Posture System"));
-			PostureSystemEnabled = new SelectorVM<SelectorItemVM>(postureOptions, 0, null);
-
-			List<string> playerPostureMultiplierOptions = new List<string> { "1x (Default)", "1.5x", "2x" };
-			PlayerPostureMultiplierText = new TextViewModel(new TextObject("Player Posture Multiplier"));
-			PlayerPostureMultiplier = new SelectorVM<SelectorItemVM>(playerPostureMultiplierOptions, 0, null);
-
-			List<string> postureGUIOptions = new List<string> { "Disabled", "Enabled (Default)" };
-			PostureGUIEnabledText = new TextViewModel(new TextObject("Posture GUI"));
-			PostureGUIEnabled = new SelectorVM<SelectorItemVM>(postureGUIOptions, 0, null);
-
-			List<string> vanillaCombatAiOptions = new List<string> { "Disabled (Default)", "Enabled" };
-			VanillaCombatAiText = new TextViewModel(new TextObject("Vanilla AI Block/Parry/Attack"));
-			VanillaCombatAi = new SelectorVM<SelectorItemVM>(vanillaCombatAiOptions, 0, null);
-
-			if (RBMConfig.playerPostureMultiplier == 1f)
-			{
-				PlayerPostureMultiplier.SelectedIndex = 0;
-			}
-			else if (RBMConfig.playerPostureMultiplier == 1.5f)
-			{
-				PlayerPostureMultiplier.SelectedIndex = 1;
-			}
-			else if (RBMConfig.playerPostureMultiplier == 2f)
-            {
-				PlayerPostureMultiplier.SelectedIndex = 2;
-			}
-
-			if (RBMConfig.postureEnabled)
-			{
-				PostureSystemEnabled.SelectedIndex = 1;
-			}
-			else
-			{
-				PostureSystemEnabled.SelectedIndex = 0;
-			}
-
-			if (RBMConfig.postureGUIEnabled)
-			{
-				PostureGUIEnabled.SelectedIndex = 1;
-			}
-			else
-			{
-				PostureGUIEnabled.SelectedIndex = 0;
-			}
-
-			if (RBMConfig.vanillaCombatAi)
-			{
-				VanillaCombatAi.SelectedIndex = 1;
-			}
-			else
-			{
-				VanillaCombatAi.SelectedIndex = 0;
-			}
-
-			List<string> rbmCombatEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
-			RBMCombatEnabled = new SelectorVM<SelectorItemVM>(rbmCombatEnabledOptions, 0, null);
-
-			List<string> rbmAiEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
-			RBMAIEnabled = new SelectorVM<SelectorItemVM>(rbmAiEnabledOptions, 0, null);
-
-			List<string> rbmTournamentEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
-			RBMTournamentEnabled = new SelectorVM<SelectorItemVM>(rbmTournamentEnabledOptions, 0, null);
-
-			if (RBMConfig.rbmCombatEnabled)
-			{
-				RBMCombatEnabled.SelectedIndex = 1;
-			}
-			else
-			{
-				RBMCombatEnabled.SelectedIndex = 0;
-			}
-
-			if (RBMConfig.rbmAiEnabled)
-			{
-				RBMAIEnabled.SelectedIndex = 1;
-			}
-			else
-			{
-				RBMAIEnabled.SelectedIndex = 0;
-			}
-
-			if (RBMConfig.rbmTournamentEnabled)
-			{
-				RBMTournamentEnabled.SelectedIndex = 1;
-			}
-			else
-			{
-				RBMTournamentEnabled.SelectedIndex = 0;
-			}
-
-		}
-
-		public override void RefreshValues()
-		{
-			base.RefreshValues();
-		}
-
-		private void ExecuteDone()
-		{
-
-			if (ActiveTroopOverhaul.SelectedIndex == 0)
-			{
-				RBMConfig.troopOverhaulActive = false;
-			}
-			if (ActiveTroopOverhaul.SelectedIndex == 1)
-			{
-				RBMConfig.troopOverhaulActive = true;
-			}
-
-			if (RangedReloadSpeed.SelectedIndex == 0)
-			{
-				RBMConfig.realisticRangedReload = "0";
-			}
-			else if (RangedReloadSpeed.SelectedIndex == 1)
-			{
-				RBMConfig.realisticRangedReload = "1";
-			}
-			else if (RangedReloadSpeed.SelectedIndex == 2)
-			{
-				RBMConfig.realisticRangedReload = "2";
-			}
-
-			if (PassiveShoulderShields.SelectedIndex == 0)
-			{
-				RBMConfig.passiveShoulderShields = false;
-			}
-			if (PassiveShoulderShields.SelectedIndex == 1)
-			{
-				RBMConfig.passiveShoulderShields = true;
-			}
-
-			if (BetterArrowVisuals.SelectedIndex == 0)
-			{
-				RBMConfig.betterArrowVisuals = false;
-			}
-			if (BetterArrowVisuals.SelectedIndex == 1)
-			{
-				RBMConfig.betterArrowVisuals = true;
-			}
-
-            if (ArmorStatusUIEnabled.SelectedIndex == 0)
-            {
-                RBMConfig.armorStatusUIEnabled = false;
-            }
-            if (ArmorStatusUIEnabled.SelectedIndex == 1)
-            {
-                RBMConfig.armorStatusUIEnabled = true;
+                case 1f:
+                    PlayerPostureMultiplier.SelectedIndex = 0;
+                    break;
+                case 1.5f:
+                    PlayerPostureMultiplier.SelectedIndex = 1;
+                    break;
+                case 2f:
+                    PlayerPostureMultiplier.SelectedIndex = 2;
+                    break;
             }
 
-            if (RealisticArrowArc.SelectedIndex == 0)
-            {
-                RBMConfig.realisticArrowArc = false;
-            }
-            if (RealisticArrowArc.SelectedIndex == 1)
-            {
-                RBMConfig.realisticArrowArc = true;
-            }
+            PostureSystemEnabled.SelectedIndex = RBMConfig.postureEnabled ? 1 : 0;
 
-            if (PostureSystemEnabled.SelectedIndex == 0)
-			{
-				RBMConfig.postureEnabled = false;
-			}
-			if (PostureSystemEnabled.SelectedIndex == 1)
-			{
-				RBMConfig.postureEnabled = true;
-			}
+            PostureGUIEnabled.SelectedIndex = RBMConfig.postureGUIEnabled ? 1 : 0;
 
-			if (PlayerPostureMultiplier.SelectedIndex == 0)
-			{
-				RBMConfig.playerPostureMultiplier = 1f;
-			}
-			else if (PlayerPostureMultiplier.SelectedIndex == 1)
-			{
-				RBMConfig.playerPostureMultiplier = 1.5f;
-			}
-			else if (PlayerPostureMultiplier.SelectedIndex == 2)
-			{
-				RBMConfig.playerPostureMultiplier = 2f;
-			}
+            VanillaCombatAi.SelectedIndex = RBMConfig.vanillaCombatAi ? 1 : 0;
 
-			if (PostureGUIEnabled.SelectedIndex == 0)
-			{
-				RBMConfig.postureGUIEnabled = false;
-			}
-			if (PostureGUIEnabled.SelectedIndex == 1)
-			{
-				RBMConfig.postureGUIEnabled = true;
-			}
+            var rbmCombatEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
+            RBMCombatEnabled = new SelectorVM<SelectorItemVM>(rbmCombatEnabledOptions, 0, null);
 
-			if (VanillaCombatAi.SelectedIndex == 0)
-			{
-				RBMConfig.vanillaCombatAi = false;
-			}
-			if (VanillaCombatAi.SelectedIndex == 1)
-			{
-				RBMConfig.vanillaCombatAi = true;
-			}
+            var rbmAiEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
+            RBMAIEnabled = new SelectorVM<SelectorItemVM>(rbmAiEnabledOptions, 0, null);
 
-			if (RBMCombatEnabled.SelectedIndex == 0)
-			{
-				RBMConfig.rbmCombatEnabled = false;
-			}
-			if (RBMCombatEnabled.SelectedIndex == 1)
-			{
-				RBMConfig.rbmCombatEnabled = true;
-			}
+            var rbmTournamentEnabledOptions = new List<string> { "Disabled", "Enabled (Default)" };
+            RBMTournamentEnabled = new SelectorVM<SelectorItemVM>(rbmTournamentEnabledOptions, 0, null);
 
-			if (RBMAIEnabled.SelectedIndex == 0)
-			{
-				RBMConfig.rbmAiEnabled = false;
-			}
-			if (RBMAIEnabled.SelectedIndex == 1)
-			{
-				RBMConfig.rbmAiEnabled = true;
-			}
+            RBMCombatEnabled.SelectedIndex = RBMConfig.rbmCombatEnabled ? 1 : 0;
 
-			if (RBMTournamentEnabled.SelectedIndex == 0)
-			{
-				RBMConfig.rbmTournamentEnabled = false;
-			}
-			if (RBMTournamentEnabled.SelectedIndex == 1)
-			{
-				RBMConfig.rbmTournamentEnabled = true;
-			}
+            RBMAIEnabled.SelectedIndex = RBMConfig.rbmAiEnabled ? 1 : 0;
 
-			RBMConfig.saveXmlConfig();
-			//RBMConfig.parseXmlConfig();
-			TaleWorlds.ScreenSystem.ScreenManager.PopScreen();
-		}
+            RBMTournamentEnabled.SelectedIndex = RBMConfig.rbmTournamentEnabled ? 1 : 0;
 
-		private void ExecuteCancel()
-		{
-			TaleWorlds.ScreenSystem.ScreenManager.PopScreen();
-		}
-
-	}
+        }
+    }
 }
