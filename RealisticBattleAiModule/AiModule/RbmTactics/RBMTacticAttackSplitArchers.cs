@@ -154,48 +154,42 @@ namespace RBMAI.AiModule.RbmTactics
 
             Utilities.FixCharge(ref _mainInfantry);
 
-            FormationAI ai;
 
             if (leftArchers != null)
             {
-                ai = leftArchers.AI;
-                ai.ResetBehaviorWeights();
+                leftArchers.AI.ResetBehaviorWeights();
                 SetDefaultBehaviorWeights(leftArchers);
-                ai.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
+                leftArchers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
             }
 
             if (rightArchers != null)
             {
-                ai = rightArchers.AI;
-                ai.ResetBehaviorWeights();
+                rightArchers.AI.ResetBehaviorWeights();
                 SetDefaultBehaviorWeights(rightArchers);
-                ai.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
+                rightArchers.AI.SetBehaviorWeight<RBMBehaviorArcherSkirmish>(1f);
             }
 
             if (_leftCavalry != null)
             {
-                ai = _leftCavalry.AI;
-                ai.ResetBehaviorWeights();
+                _leftCavalry.AI.ResetBehaviorWeights();
                 SetDefaultBehaviorWeights(_leftCavalry);
-                ai.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
-                ai.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+                _leftCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
+                _leftCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
             }
 
             if (_rightCavalry != null)
             {
-                ai = _rightCavalry.AI;
-                ai.ResetBehaviorWeights();
+                _rightCavalry.AI.ResetBehaviorWeights();
                 SetDefaultBehaviorWeights(_rightCavalry);
-                ai.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
-                ai.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+                _rightCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
+                _rightCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
             }
 
             if (_rangedCavalry != null)
             {
-                ai = _rangedCavalry.AI;
-                ai.ResetBehaviorWeights();
+                _rangedCavalry.AI.ResetBehaviorWeights();
                 SetDefaultBehaviorWeights(_rangedCavalry);
-                ai.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
+                _rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
             }
 
             IsTacticReapplyNeeded = false;
