@@ -50,7 +50,7 @@ namespace RBMAI.AiModule.RbmTactics
                 {
                     formation.ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
                     {
-                        if (/*i == 0 || */!formation.IsInfantry())
+                        if (infCount == 0 || !formation.IsInfantry())
                             return;
 
                         var isSkirmisher = Utilities.CheckIfSkirmisherAgent(agent, 2);
@@ -80,11 +80,11 @@ namespace RBMAI.AiModule.RbmTactics
                         j++;
                     }
 
-                    foreach (var agent in meleeList)
-                    {
-                        agent.Formation = Formations.ElementAt(j < infCount / 10f ? skirmIndex : 0);
-                        j++;
-                    }
+                    //foreach (var agent in meleeList)
+                    //{
+                    //    agent.Formation = Formations.ElementAt(j < infCount / 10f ? skirmIndex : 0);
+                    //    j++;
+                    //}
 
                     if (Formations.ElementAtOrDefault(skirmIndex) != null)
                     {

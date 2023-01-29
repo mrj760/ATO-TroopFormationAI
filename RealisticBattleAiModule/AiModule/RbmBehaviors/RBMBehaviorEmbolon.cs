@@ -21,23 +21,22 @@ namespace RBMAI.AiModule.RbmBehaviors
 
         protected sealed override void CalculateCurrentOrder()
         {
-            var fqs = Formation.QuerySystem;
             Vec2 direction;
             WorldPosition medianPosition;
             if (_mainFormation != null)
             {
-                var mfqs = _mainFormation.QuerySystem;
                 direction = _mainFormation.Direction;
-                var vec = (fqs.Team.MedianTargetFormationPosition.AsVec2 - mfqs.MedianPosition.AsVec2).Normalized();
-                medianPosition = mfqs.MedianPosition;
+                var vec = (Formation.QuerySystem.Team.MedianTargetFormationPosition.AsVec2 -
+                           _mainFormation.QuerySystem.MedianPosition.AsVec2).Normalized();
+                medianPosition = _mainFormation.QuerySystem.MedianPosition;
                 medianPosition.SetVec2(_mainFormation.CurrentPosition +
                                        vec * ((_mainFormation.Depth + Formation.Depth) * 0.5f + 20f));
             }
             else
             {
                 direction = Formation.Direction;
-                medianPosition = fqs.MedianPosition;
-                medianPosition.SetVec2(fqs.AveragePosition);
+                medianPosition = Formation.QuerySystem.MedianPosition;
+                medianPosition.SetVec2(Formation.QuerySystem.AveragePosition);
             }
 
             CurrentOrder = MovementOrder.MovementOrderMove(medianPosition);

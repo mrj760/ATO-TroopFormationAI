@@ -20,7 +20,7 @@ namespace RBM
 
     public class SubModule : MBSubModuleBase
     {
-        public static string ModuleId = "RBM";
+        public static string ModuleId = "ATO_RBMAI";
 
 
         public static void ApplyHarmonyPatches()

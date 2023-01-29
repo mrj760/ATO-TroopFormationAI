@@ -83,7 +83,8 @@ namespace RBMAI.AiModule.RbmBehaviors
             }
             else
             {
-                var skirmishRange = 45f / mobilityModifier;
+                //var skirmishRange = 45f / mobilityModifier;
+                var skirmishRange = 25f / mobilityModifier;
                 const float flankRange = 25f;
 
                 var enemyFormation = fqs.ClosestSignificantlyLargeEnemyFormation?.Formation;
@@ -216,6 +217,7 @@ namespace RBMAI.AiModule.RbmBehaviors
 
                         position = medianTargetFormationPosition;
                         calcPosition = position.AsVec2 - enemyDirection * (skirmishRange - (10f + Formation.Depth * 0.5f));
+
                         var dir = new Vec2(0,0);
 
                         if (_behaviorSide == BehaviorSide.Right || FlankSide == BehaviorSide.Right)
