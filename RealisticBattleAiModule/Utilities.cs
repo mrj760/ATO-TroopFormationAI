@@ -951,7 +951,7 @@ namespace RBMAI
 
         public static string GetSiegeArcherPointsPath()
         {
-            return BasePath.Name + "Modules/RBM/ModuleData/scene_positions/";
+            return BasePath.Name + "Modules/ATO_RBM/SceneXmls/scene_positions/";
         }
 
         private static float GetPowerOriginal(int tier, bool isHero = false, bool isMounted = false)

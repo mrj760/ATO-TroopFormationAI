@@ -15,8 +15,8 @@
   <SubModules>
     <SubModule>
       <Name value="ATO_RBM"/>
-      <DLLName value="ATO_RBMSubModule.dll"/>
-      <SubModuleClassType value="RBM.SubModule"/>
+      <DLLName value="ATO_RBMTroopAI.dll"/>
+      <SubModuleClassType value="RBMAI.RBMAIPatcher"/>
       <Tags>
         <Tag key="DedicatedServerType" value="none" />
         <Tag key="IsNoRenderModeElement" value="false" />

@@ -16,7 +16,7 @@ namespace RBM
         {
             static bool Prefix(ref XmlDocument xmlDocument1, ref XmlDocument xmlDocument2, ref XmlDocument __result)
             {
-                return true;
+                //return true;
                 var originalXml = MBObjectManager.ToXDocument(xmlDocument1);
                 var mergedXml = MBObjectManager.ToXDocument(xmlDocument2);
 
@@ -32,7 +32,8 @@ namespace RBM
                     return false;
                 }
 
-                if (!RBMConfig.RBMConfig.rbmCombatEnabled) return true;
+                if (!RBMConfig.RBMConfig.rbmCombatEnabled) 
+                    return true;
 
                 if (originalXml.Root != null)
                 {

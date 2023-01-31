@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
-using HarmonyLib;
 using TaleWorlds.Core;
 using TaleWorlds.Engine;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.MountAndBlade.View.MissionViews;
 
-namespace RBMAI.Patches
+namespace RBMAI.AiModule.RbmSieges
 {
     public class SiegeArcherPoints : MissionView
     {
@@ -24,7 +23,6 @@ namespace RBMAI.Patches
 
         public override void OnMissionScreenTick(float dt)
         {
-            //((MissionView)this).OnMissionScreenTick(dt);
             if (isFirstTimeLoading && Mission.Current != null && Mission.Current.IsSiegeBattle)
             {
                 XmlDocument xmlDocument = new XmlDocument();
@@ -39,10 +37,10 @@ namespace RBMAI.Patches
                     List<GameEntity> gameEntities = new List<GameEntity>();
                     Mission.Current.Scene.GetEntities(ref gameEntities);
                     StrategicArea strategicArea;
-                    List<StrategicArea> _strategicAreas = (from amo in Mission.Current.ActiveMissionObjects
-                                                           where (strategicArea = amo as StrategicArea) != null && strategicArea.IsActive && strategicArea.IsUsableBy(BattleSideEnum.Defender)
-                                                           && (strategicArea.GameEntity.GetOldPrefabName().Contains("archer_position") || strategicArea.GameEntity.GetOldPrefabName().Contains("strategic_archer_point"))
-                                                           select amo as StrategicArea).ToList();
+                    var _strategicAreas = (from amo in Mission.Current.ActiveMissionObjects
+                                           where (strategicArea = amo as StrategicArea) != null && strategicArea.IsActive && strategicArea.IsUsableBy(BattleSideEnum.Defender)
+                                                 && (strategicArea.GameEntity.GetOldPrefabName().Contains("archer_position") || strategicArea.GameEntity.GetOldPrefabName().Contains("strategic_archer_point"))
+                                           select amo as StrategicArea);
                     foreach (StrategicArea _strategicArea in _strategicAreas)
                     {
                         Mission.Current.Teams.Defender.TeamAI.RemoveStrategicArea(_strategicArea);
@@ -61,14 +59,13 @@ namespace RBMAI.Patches
                             }
                         }
                     }
-                    List<GameEntity> ListBase = Mission.Current.Scene.FindEntitiesWithTag("BeerMarkerBase").ToList();
-                    foreach (GameEntity b in ListBase)
+                    foreach (GameEntity b in Mission.Current.Scene.FindEntitiesWithTag("BeerMarkerBase"))
                     {
                         b.RemoveAllChildren();
                         b.Remove(1);
                     }
-                    List<GameEntity> ListG = Mission.Current.Scene.FindEntitiesWithTag("PlayerStratPoint").ToList();
-                    List<GameEntity> ListArrow = Mission.Current.Scene.FindEntitiesWithTag("BeerMarkerPlayer").ToList();
+                    var ListG = Mission.Current.Scene.FindEntitiesWithTag("PlayerStratPoint");
+                    var ListArrow = Mission.Current.Scene.FindEntitiesWithTag("BeerMarkerPlayer");
                     foreach (GameEntity g in ListG)
                     {
                         Mission.Current.Teams.Defender.TeamAI.RemoveStrategicArea(g.GetFirstScriptOfType<StrategicArea>());
@@ -84,9 +81,6 @@ namespace RBMAI.Patches
                     foreach (XmlNode pointNode in xmlDocument.SelectSingleNode("/points").ChildNodes)
                     {
                         double[] parsed = Array.ConvertAll(pointNode.InnerText.Split(new[] { ',', }, StringSplitOptions.RemoveEmptyEntries), Double.Parse);
-
-                        //WorldFrame worldPos = new WorldFrame(new Mat3((float)parsed[0], (float)parsed[1], (float)parsed[2], (float)parsed[3],
-                        //	(float)parsed[4], (float)parsed[5], (float)parsed[6], (float)parsed[7], (float)parsed[8]), new WorldPosition(Mission.Current.Scene, new Vec3((float)parsed[9], (float)parsed[10], (float)parsed[11])));
 
                         MatrixFrame matFrame = new MatrixFrame((float)parsed[0], (float)parsed[1], (float)parsed[2], (float)parsed[3],
                             (float)parsed[4], (float)parsed[5], (float)parsed[6], (float)parsed[7], (float)parsed[8], (float)parsed[9], (float)parsed[10], (float)parsed[11]);
@@ -121,7 +115,8 @@ namespace RBMAI.Patches
             if (firstTime && Mission.Current != null && Mission.Current.IsSiegeBattle && Mission.Current.PlayerTeam.IsDefender && Mission.Current.Mode != MissionMode.Deployment)
             {
 
-                if (firstTime)
+                //if (firstTime && !RBMConfig.RBMConfig.developerMode)
+                if (true)
                 {
                     firstTime = false;
                     return;
@@ -174,40 +169,5 @@ namespace RBMAI.Patches
 
         }
 
-        [HarmonyPatch(typeof(ArrangementOrder))]
-        [HarmonyPatch("GetCloseStrategicAreas")]
-        public class GetCloseStrategicAreasPatch
-        {
-            public static bool Prefix(ref IEnumerable<StrategicArea> __result, Formation formation, ref ArrangementOrder __instance)
-            {
-                if (formation.Team?.TeamAI == null)
-                {
-                    __result = new List<StrategicArea>();
-                    return false;
-                }
-                __result = formation.Team.TeamAI.GetStrategicAreas().Where(delegate (StrategicArea sa)
-                {
-                    float customDistanceToCheck = 150f;
-                    if (sa != null && formation != null && sa.GameEntity != null && sa.GameEntity.GlobalPosition != null && sa.IsUsableBy(formation.Team.Side))
-                    {
-                        if (sa.IgnoreHeight)
-                        {
-                            if (MathF.Abs(sa.GameEntity.GlobalPosition.x - formation.OrderPosition.X) <= customDistanceToCheck)
-                            {
-                                return MathF.Abs(sa.GameEntity.GlobalPosition.y - formation.OrderPosition.Y) <= customDistanceToCheck;
-                            }
-                            return false;
-                        }
-                        WorldPosition worldPosition = formation.CreateNewOrderWorldPosition(WorldPosition.WorldPositionEnforcedCache.None);
-                        Vec3 targetPoint = sa.GameEntity.GlobalPosition;
-                        return worldPosition.DistanceSquaredWithLimit(in targetPoint, customDistanceToCheck * customDistanceToCheck + 1E-05f) < customDistanceToCheck * customDistanceToCheck;
-                    }
-
-                    return false;
-                });
-
-                return false;
-            }
-        }
     }
 }

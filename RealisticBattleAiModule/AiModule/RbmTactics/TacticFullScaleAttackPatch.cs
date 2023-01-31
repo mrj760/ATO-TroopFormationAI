@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using HarmonyLib;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using RBMAI.AiModule.RbmBehaviors;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
@@ -10,17 +10,17 @@ using static TaleWorlds.Core.ItemObject;
 namespace RBMAI.AiModule.RbmTactics
 {
     [HarmonyPatch(typeof(TacticFullScaleAttack))]
-    internal class TacticFullScaleAttackPatch
+    class TacticFullScaleAttackPatch
     {
+
         [HarmonyPostfix]
         [HarmonyPatch("Advance")]
-        private static void PostfixAdvance(ref Formation ____mainInfantry, ref Formation ____archers,
-            ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
+        static void PostfixAdvance(ref Formation ____mainInfantry, ref Formation ____archers, ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
         {
-            FormationAI.BehaviorSide newside;
-
-            ____mainInfantry?.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
-
+            if (____mainInfantry != null)
+            {
+                ____mainInfantry.AI.SetBehaviorWeight<BehaviorRegroup>(1.75f);
+            }
             if (____archers != null)
             {
                 ____archers.AI.SetBehaviorWeight<BehaviorSkirmish>(0f);
@@ -28,29 +28,22 @@ namespace RBMAI.AiModule.RbmTactics
                 ____archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
                 ____archers.AI.SetBehaviorWeight<BehaviorRegroup>(1.25f);
             }
-
             if (____rightCavalry != null)
             {
-                newside = FormationAI.BehaviorSide.Right;
-
                 ____rightCavalry.AI.ResetBehaviorWeights();
-                ____rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = newside;
-                ____rightCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = newside;
+                ____rightCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Right;
+                ____rightCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Right;
             }
-
             if (____leftCavalry != null)
             {
-                newside = FormationAI.BehaviorSide.Left;
-
                 ____leftCavalry.AI.ResetBehaviorWeights();
-                ____leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = newside;
-                ____leftCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = newside;
+                ____leftCavalry.AI.SetBehaviorWeight<BehaviorProtectFlank>(1f).FlankSide = FormationAI.BehaviorSide.Left;
+                ____leftCavalry.AI.SetBehaviorWeight<RBMBehaviorForwardSkirmish>(1f).FlankSide = FormationAI.BehaviorSide.Left;
             }
-
-            if (____rangedCavalry != null)
+            if(____rangedCavalry != null)
             {
                 ____rangedCavalry.AI.ResetBehaviorWeights();
-                TacticComponent.SetDefaultBehaviorWeights(____rangedCavalry);
+                TacticFullScaleAttack.SetDefaultBehaviorWeights(____rangedCavalry);
                 ____rangedCavalry.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(1f);
                 ____rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
             }
@@ -58,8 +51,7 @@ namespace RBMAI.AiModule.RbmTactics
 
         [HarmonyPostfix]
         [HarmonyPatch("Attack")]
-        private static void PostfixAttack(ref Formation ____mainInfantry, ref Formation ____archers,
-            ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
+        static void PostfixAttack(ref Formation ____mainInfantry, ref Formation ____archers, ref Formation ____rightCavalry, ref Formation ____leftCavalry, ref Formation ____rangedCavalry)
         {
 
             if (____archers != null)
@@ -70,7 +62,6 @@ namespace RBMAI.AiModule.RbmTactics
                 ____archers.AI.SetBehaviorWeight<BehaviorSkirmishLine>(0f);
                 ____archers.AI.SetBehaviorWeight<BehaviorScreenedSkirmish>(0f);
             }
-
             if (____rightCavalry != null)
             {
                 ____rightCavalry.AI.ResetBehaviorWeights();
@@ -78,7 +69,6 @@ namespace RBMAI.AiModule.RbmTactics
                 ____rightCavalry.AI.SetBehaviorWeight<BehaviorCharge>(1f);
                 ____rightCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
             }
-
             if (____leftCavalry != null)
             {
                 ____leftCavalry.AI.ResetBehaviorWeights();
@@ -86,118 +76,120 @@ namespace RBMAI.AiModule.RbmTactics
                 ____leftCavalry.AI.SetBehaviorWeight<BehaviorCharge>(1f);
                 ____leftCavalry.AI.SetBehaviorWeight<RBMBehaviorCavalryCharge>(1f);
             }
-
             if (____rangedCavalry != null)
             {
                 ____rangedCavalry.AI.ResetBehaviorWeights();
-                TacticComponent.SetDefaultBehaviorWeights(____rangedCavalry);
+                TacticFullScaleAttack.SetDefaultBehaviorWeights(____rangedCavalry);
                 ____rangedCavalry.AI.SetBehaviorWeight<BehaviorMountedSkirmish>(1f);
             }
-
-            Utilities.FixCharge(ref ____mainInfantry);
+            RBMAI.Utilities.FixCharge(ref ____mainInfantry);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch("HasBattleBeenJoined")]
-        private static void PostfixHasBattleBeenJoined(Formation ____mainInfantry, bool ____hasBattleBeenJoined,
-            ref bool __result)
+        static void PostfixHasBattleBeenJoined(Formation ____mainInfantry, bool ____hasBattleBeenJoined, ref bool __result)
         {
-            __result = Utilities.HasBattleBeenJoined(____mainInfantry, ____hasBattleBeenJoined);
+            __result = RBMAI.Utilities.HasBattleBeenJoined(____mainInfantry, ____hasBattleBeenJoined);
         }
 
         [HarmonyPostfix]
         [HarmonyPatch("GetTacticWeight")]
-        private static void PostfixGetAiWeight(TacticFullScaleAttack __instance, ref float __result)
+        static void PostfixGetAiWeight(ref float __result, ref Team ___team)
         {
-            var teamField = typeof(TacticFullScaleAttack).GetField("team", BindingFlags.NonPublic | BindingFlags.Instance);
-            var _ = teamField?.DeclaringType?.GetField("team");
-
-            var currentTeam = (Team)teamField?.GetValue(__instance);
-
-            if (currentTeam != null 
-                && currentTeam.Side == BattleSideEnum.Defender 
-                && currentTeam.QuerySystem.InfantryRatio > 0.9f) 
-                __result = 100f;
-            
-            else if (float.IsNaN(__result)) 
+            if (___team.Side == BattleSideEnum.Defender)
+            {
+                if (___team.QuerySystem.InfantryRatio > 0.9f)
+                {
+                    __result = 100f;
+                }
+            }
+            if(float.IsNaN(__result))
+            {
                 __result = 0.01f;
+            }
         }
 
         [HarmonyPostfix]
         [HarmonyPatch("ManageFormationCounts")]
-        private static void PostfixManageFormationCounts(ref Formation ____leftCavalry, ref Formation ____rightCavalry)
+        static void PostfixManageFormationCounts(ref Formation ____leftCavalry, ref Formation ____rightCavalry)
         {
-            if (____leftCavalry == null 
-                || ____rightCavalry == null 
-                || !____leftCavalry.IsAIControlled 
-                || !____rightCavalry.IsAIControlled) 
-                return;
-
-            var mountedSkirmishersList = new List<Agent>();
-            var mountedMeleeList = new List<Agent>();
-
-            ____leftCavalry.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
+            if (____leftCavalry != null && ____rightCavalry != null && ____leftCavalry.IsAIControlled && ____rightCavalry.IsAIControlled)
             {
-                var ismountedSkrimisher = false;
-                for (var equipmentIndex = EquipmentIndex.WeaponItemBeginSlot;
-                     equipmentIndex < EquipmentIndex.NumAllWeaponSlots;
-                     equipmentIndex++)
-                    if (agent.Equipment != null 
-                        && !agent.Equipment[equipmentIndex].IsEmpty 
-                        && agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown 
-                        && agent.MountAgent != null)
+                List<Agent> mountedSkirmishersList = new List<Agent>();
+                List<Agent> mountedMeleeList = new List<Agent>();
+                ____leftCavalry.ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
+                {
+                    bool ismountedSkrimisher = false;
+                    for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
                     {
-                        ismountedSkrimisher = true;
-                        break;
+                        if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
+                        {
+                            if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown && agent.MountAgent != null)
+                            {
+                                ismountedSkrimisher = true;
+                                break;
+                            }
+                        }
                     }
-
-                if (ismountedSkrimisher)
-                    mountedSkirmishersList.Add(agent);
-                else
-                    mountedMeleeList.Add(agent);
-            });
-
-            ____rightCavalry.ApplyActionOnEachUnitViaBackupList(delegate(Agent agent)
-            {
-                var ismountedSkrimisher = false;
-                for (var equipmentIndex = EquipmentIndex.WeaponItemBeginSlot;
-                     equipmentIndex < EquipmentIndex.NumAllWeaponSlots;
-                     equipmentIndex++)
-
-                    if (agent.Equipment != null 
-                        && !agent.Equipment[equipmentIndex].IsEmpty 
-                        && agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown 
-                        && agent.MountAgent != null)
+                    if (ismountedSkrimisher)
                     {
-                        ismountedSkrimisher = true;
-                        break;
+                        mountedSkirmishersList.Add(agent);
                     }
+                    else
+                    {
+                        mountedMeleeList.Add(agent);
+                    }
+                });
 
-                if (ismountedSkrimisher)
-                    mountedSkirmishersList.Add(agent);
-                else
-                    mountedMeleeList.Add(agent);
-            });
-
-            var j = 0;
-            var cavalryCount = ____leftCavalry.CountOfUnits + ____rightCavalry.CountOfUnits;
-
-            foreach (var agent in mountedSkirmishersList)
-            {
-                agent.Formation = 
-                    j < cavalryCount / 2 ? 
-                    ____leftCavalry : 
-                    ____rightCavalry;
-                j++;
-            }
-
-            foreach (var agent in mountedMeleeList)
-            {
-                agent.Formation = 
-                    j < cavalryCount / 2 ? 
-                        ____leftCavalry : 
-                        ____rightCavalry;
-                j++;
+                ____rightCavalry.ApplyActionOnEachUnitViaBackupList(delegate (Agent agent)
+                {
+                    bool ismountedSkrimisher = false;
+                    for (EquipmentIndex equipmentIndex = EquipmentIndex.WeaponItemBeginSlot; equipmentIndex < EquipmentIndex.NumAllWeaponSlots; equipmentIndex++)
+                    {
+                        if (agent.Equipment != null && !agent.Equipment[equipmentIndex].IsEmpty)
+                        {
+                            if (agent.Equipment[equipmentIndex].Item.Type == ItemTypeEnum.Thrown && agent.MountAgent != null)
+                            {
+                                ismountedSkrimisher = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (ismountedSkrimisher)
+                    {
+                        mountedSkirmishersList.Add(agent);
+                    }
+                    else
+                    {
+                        mountedMeleeList.Add(agent);
+                    }
+                });
+                int j = 0;
+                int cavalryCount = ____leftCavalry.CountOfUnits + ____rightCavalry.CountOfUnits;
+                foreach (Agent agent in mountedSkirmishersList)
+                {
+                    if (j < cavalryCount / 2)
+                    {
+                        agent.Formation = ____leftCavalry;
+                    }
+                    else
+                    {
+                        agent.Formation = ____rightCavalry;
+                    }
+                    j++;
+                }
+                foreach (Agent agent in mountedMeleeList)
+                {
+                    if (j < cavalryCount / 2)
+                    {
+                        agent.Formation = ____leftCavalry;
+                    }
+                    else
+                    {
+                        agent.Formation = ____rightCavalry;
+                    }
+                    j++;
+                }
             }
         }
     }

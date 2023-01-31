@@ -1,42 +1,40 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using HarmonyLib;
 using SandBox.Missions.MissionLogics;
 using TaleWorlds.CampaignSystem.Encounters;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.Core;
+using TaleWorlds.Engine;
 using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.MountAndBlade.MissionSpawnHandlers;
 
-namespace RBMAI.AiModule
+namespace RBMAI.AiModule.SpawnPatches
 {
-    internal class SpawningPatches
+    class SpawningPatches
     {
+
         [HarmonyPatch(typeof(Mission))]
-        private class SpawnTroopPatch
+        class SpawnTroopPatch
         {
             [HarmonyPrefix]
             [HarmonyPatch("SpawnTroop")]
-            private static bool PrefixSpawnTroop(ref Mission __instance, IAgentOriginBase troopOrigin,
-                bool isPlayerSide, bool hasFormation, bool spawnWithHorse, bool isReinforcement,
-                int formationTroopCount, int formationTroopIndex, bool isAlarmed, bool wieldInitialWeapons,
-                bool forceDismounted, ref Vec3? initialPosition, ref Vec2? initialDirection,
-                string specialActionSetSuffix = null)
+            static bool PrefixSpawnTroop(ref Mission __instance, IAgentOriginBase troopOrigin, bool isPlayerSide, bool hasFormation, bool spawnWithHorse, bool isReinforcement, int formationTroopCount, int formationTroopIndex, bool isAlarmed, bool wieldInitialWeapons, bool forceDismounted, ref Vec3? initialPosition, ref Vec2? initialDirection, string specialActionSetSuffix = null)
             {
-                if (Mission.Current == null
-                    || Mission.Current.MissionTeamAIType != Mission.MissionTeamAITypeEnum.FieldBattle
-                    || !isReinforcement
-                    || !hasFormation)
+                if (Mission.Current == null || Mission.Current.MissionTeamAIType != Mission.MissionTeamAITypeEnum.FieldBattle) 
                     return true;
 
+                if (!isReinforcement || !hasFormation) 
+                    return true;
 
                 var troop = troopOrigin.Troop;
                 var agentTeam = Mission.GetAgentTeam(troopOrigin, isPlayerSide);
                 var formation = agentTeam.GetFormation(troop.GetFormationClass());
-
                 if (formation.CountOfUnits == 0)
                 {
-                    foreach (var allyFormation in agentTeam.Formations)
+                    foreach (Formation allyFormation in agentTeam.Formations.Where((Formation f) => f.CountOfUnits > 0))
                     {
                         if (allyFormation.CountOfUnits <= 0) 
                             continue;
@@ -45,31 +43,27 @@ namespace RBMAI.AiModule
                         break;
                     }
                 }
-
-                if (formation.CountOfUnits == 0) 
+                if (formation.CountOfUnits == 0)
+                {
                     return true;
-
+                }
                 var tempWorldPosition = Mission.Current.GetClosestFleePositionForFormation(formation);
                 var tempPos = tempWorldPosition.AsVec2;
                 tempPos.x += MBRandom.RandomInt(20);
                 tempPos.y += MBRandom.RandomInt(20);
 
-                initialPosition = Mission.Current.DeploymentPlan
-                    ?.GetClosestDeploymentBoundaryPosition(agentTeam.Side, tempPos,
-                        DeploymentPlanType.Reinforcement).ToVec3();
+                initialPosition = Mission.Current.DeploymentPlan?.GetClosestDeploymentBoundaryPosition(agentTeam.Side, tempPos, DeploymentPlanType.Reinforcement).ToVec3();
                 initialDirection = tempPos - formation.CurrentPosition;
-
                 return true;
             }
         }
 
         [HarmonyPatch(typeof(SandBoxSiegeMissionSpawnHandler))]
-        private class OverrideSandBoxSiegeMissionSpawnHandler
+        class OverrideSandBoxSiegeMissionSpawnHandler
         {
             [HarmonyPrefix]
             [HarmonyPatch("AfterStart")]
-            private static bool PrefixAfterStart(ref MapEvent ____mapEvent,
-                ref MissionAgentSpawnLogic ____missionAgentSpawnLogic)
+            static bool PrefixAfterStart(ref MapEvent ____mapEvent, ref MissionAgentSpawnLogic ____missionAgentSpawnLogic)
             {
                 if (____mapEvent == null) 
                     return true;
@@ -84,68 +78,61 @@ namespace RBMAI.AiModule
                 if (totalBattleSize <= battleSize) 
                     return true;
 
-                var defenderAdvantage =
-                    battleSize / (numberOfInvolvedMen * (battleSize * 2f / totalBattleSize));
-                if (numberOfInvolvedMen < battleSize / 2f)
-                    defenderAdvantage = totalBattleSize / (float)battleSize;
+                var defenderAdvantage = (float)battleSize / ((float)numberOfInvolvedMen * ((battleSize * 2f) / (totalBattleSize)));
+                if (numberOfInvolvedMen < (battleSize / 2f))
+                {
+                    defenderAdvantage = (float)totalBattleSize / (float)battleSize;
+                }
                 ____missionAgentSpawnLogic.SetSpawnHorses(BattleSideEnum.Defender, false);
                 ____missionAgentSpawnLogic.SetSpawnHorses(BattleSideEnum.Attacker, false);
 
                 var spawnSettings = MissionSpawnSettings.CreateDefaultSpawnSettings();
                 spawnSettings.DefenderAdvantageFactor = defenderAdvantage;
 
-                ____missionAgentSpawnLogic.InitWithSinglePhase(numberOfInvolvedMen, numberOfInvolvedMen2,
-                    numberOfInvolvedMen, numberOfInvolvedMen2, true, true, in spawnSettings);
-
+                ____missionAgentSpawnLogic.InitWithSinglePhase(numberOfInvolvedMen, numberOfInvolvedMen2, numberOfInvolvedMen, numberOfInvolvedMen2, spawnDefenders: true, spawnAttackers: true, in spawnSettings);
                 return false;
-
             }
         }
 
         [HarmonyPatch(typeof(CustomSiegeMissionSpawnHandler))]
-        private class OverrideCustomSiegeMissionSpawnHandler
+        class OverrideCustomSiegeMissionSpawnHandler
         {
             [HarmonyPrefix]
             [HarmonyPatch("AfterStart")]
-            private static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic,
-                ref CustomBattleCombatant[] ____battleCombatants)
+            static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic, ref CustomBattleCombatant[] ____battleCombatants)
             {
-                var battleSize = ____missionAgentSpawnLogic.BattleSize;
+                int battleSize = ____missionAgentSpawnLogic.BattleSize;
 
-                var numberOfInvolvedMen = ____battleCombatants[0].NumberOfHealthyMembers;
-                var numberOfInvolvedMen2 = ____battleCombatants[1].NumberOfHealthyMembers;
+                int numberOfInvolvedMen = ____battleCombatants[0].NumberOfHealthyMembers;
+                int numberOfInvolvedMen2 = ____battleCombatants[1].NumberOfHealthyMembers;
 
-                var totalBattleSize = numberOfInvolvedMen + numberOfInvolvedMen2;
+                int totalBattleSize = numberOfInvolvedMen + numberOfInvolvedMen2;
 
                 if (totalBattleSize <= battleSize) 
                     return true;
 
-                var defenderAdvantage = battleSize / (numberOfInvolvedMen * (battleSize * 2f / totalBattleSize));
-
-                if (numberOfInvolvedMen < battleSize / 2f) 
-                    defenderAdvantage = totalBattleSize / (float)battleSize;
-
+                float defenderAdvantage = (float)battleSize / ((float)numberOfInvolvedMen * ((battleSize * 2f) / (totalBattleSize)));
+                if (numberOfInvolvedMen < (battleSize / 2f))
+                {
+                    defenderAdvantage = (float)totalBattleSize / (float)battleSize;
+                }
                 ____missionAgentSpawnLogic.SetSpawnHorses(BattleSideEnum.Defender, false);
                 ____missionAgentSpawnLogic.SetSpawnHorses(BattleSideEnum.Attacker, false);
 
                 var spawnSettings = MissionSpawnSettings.CreateDefaultSpawnSettings();
                 spawnSettings.DefenderAdvantageFactor = defenderAdvantage;
 
-                ____missionAgentSpawnLogic.InitWithSinglePhase(numberOfInvolvedMen, numberOfInvolvedMen2,
-                    numberOfInvolvedMen, numberOfInvolvedMen2, true, true, in spawnSettings);
-
+                ____missionAgentSpawnLogic.InitWithSinglePhase(numberOfInvolvedMen, numberOfInvolvedMen2, numberOfInvolvedMen, numberOfInvolvedMen2, spawnDefenders: true, spawnAttackers: true, in spawnSettings);
                 return false;
-
             }
         }
 
         [HarmonyPatch(typeof(CustomBattleMissionSpawnHandler))]
-        private class OverrideAfterStartCustomBattleMissionSpawnHandler
+        class OverrideAfterStartCustomBattleMissionSpawnHandler
         {
             [HarmonyPrefix]
             [HarmonyPatch("AfterStart")]
-            private static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic,
-                ref CustomBattleCombatant ____defenderParty, ref CustomBattleCombatant ____attackerParty)
+            static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic, ref CustomBattleCombatant ____defenderParty, ref CustomBattleCombatant ____attackerParty)
             {
                 var battleSize = ____missionAgentSpawnLogic.BattleSize;
 
@@ -154,12 +141,12 @@ namespace RBMAI.AiModule
 
                 var totalBattleSize = numberOfHealthyMembers + numberOfHealthyMembers2;
 
-                if (totalBattleSize <= battleSize) 
+                if (totalBattleSize <= battleSize)
                     return true;
 
                 var defenderAdvantage = battleSize / (numberOfHealthyMembers * (battleSize * 2f / totalBattleSize));
 
-                if (numberOfHealthyMembers < battleSize / 2f) 
+                if (numberOfHealthyMembers < battleSize / 2f)
                     defenderAdvantage = totalBattleSize / (float)battleSize;
 
                 ____missionAgentSpawnLogic.SetSpawnHorses(BattleSideEnum.Defender, !Mission.Current.IsSiegeBattle);
@@ -175,19 +162,17 @@ namespace RBMAI.AiModule
                     numberOfHealthyMembers, numberOfHealthyMembers2, true, true, in spawnSettings);
 
                 return false;
-
             }
         }
 
         [HarmonyPatch(typeof(SandBoxBattleMissionSpawnHandler))]
-        private class OverrideAfterStartSandBoxBattleMissionSpawnHandler
+        class OverrideAfterStartSandBoxBattleMissionSpawnHandler
         {
             [HarmonyPrefix]
             [HarmonyPatch("AfterStart")]
-            private static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic,
-                ref MapEvent ____mapEvent)
+            static bool PrefixAfterStart(ref MissionAgentSpawnLogic ____missionAgentSpawnLogic, ref MapEvent ____mapEvent)
             {
-                if (____mapEvent == null) 
+                if (____mapEvent == null)
                     return true;
 
                 var battleSize = ____missionAgentSpawnLogic.BattleSize;
@@ -197,7 +182,7 @@ namespace RBMAI.AiModule
 
                 var totalBattleSize = numberOfInvolvedMen + numberOfInvolvedMen2;
 
-                if (totalBattleSize <= battleSize) 
+                if (totalBattleSize <= battleSize)
                     return true;
 
                 var defenderAdvantage =
@@ -219,7 +204,6 @@ namespace RBMAI.AiModule
                 ____missionAgentSpawnLogic.InitWithSinglePhase(numberOfInvolvedMen, numberOfInvolvedMen2,
                     numberOfInvolvedMen, numberOfInvolvedMen2, true, true, in spawnSettings);
                 return false;
-
             }
         }
 
@@ -235,7 +219,7 @@ namespace RBMAI.AiModule
                 ref bool ____reinforcementSpawnEnabled, ref int ____battleSize, ref List<SpawnPhase>[] ____phases,
                 ref MissionSpawnSettings ____spawnSettings)
             {
-                if (Mission.Current.MissionTeamAIType != Mission.MissionTeamAITypeEnum.FieldBattle) 
+                if (Mission.Current.MissionTeamAIType != Mission.MissionTeamAITypeEnum.FieldBattle)
                     return true;
 
                 var numberOfTroops = __instance.NumberOfAgents;
@@ -244,16 +228,16 @@ namespace RBMAI.AiModule
                 {
                     var numberOfTroopsCanBeSpawned = ____phases[i][0].RemainingSpawnNumber;
 
-                    if (numberOfTroops <= 0 || numberOfTroopsCanBeSpawned <= 0) 
+                    if (numberOfTroops <= 0 || numberOfTroopsCanBeSpawned <= 0)
                         continue;
 
-                    if (__instance.NumberOfRemainingTroops <= 0) 
+                    if (__instance.NumberOfRemainingTroops <= 0)
                         return true;
 
-                    var num4 = (____phases[0][0].InitialSpawnedNumber - __instance.NumberOfActiveDefenderTroops) 
+                    var num4 = (____phases[0][0].InitialSpawnedNumber - __instance.NumberOfActiveDefenderTroops)
                                / (float)____phases[0][0].InitialSpawnedNumber;
 
-                    var num5 = (____phases[1][0].InitialSpawnedNumber - __instance.NumberOfActiveAttackerTroops) 
+                    var num5 = (____phases[1][0].InitialSpawnedNumber - __instance.NumberOfActiveAttackerTroops)
                                / (float)____phases[1][0].InitialSpawnedNumber;
 
                     if (!(____battleSize * 0.4f > __instance.NumberOfActiveDefenderTroops + __instance.NumberOfActiveAttackerTroops)
@@ -306,17 +290,18 @@ namespace RBMAI.AiModule
 
         [HarmonyPatch(typeof(PlayerEncounter))]
         [HarmonyPatch("CheckIfBattleShouldContinueAfterBattleMission")]
-        private class SetRoutedPatch
+        class SetRoutedPatch
         {
-            private static bool Prefix(ref CampaignBattleResult ____campaignBattleResult, ref bool __result)
+            static bool Prefix(ref PlayerEncounter __instance, ref MapEvent ____mapEvent, ref CampaignBattleResult ____campaignBattleResult, ref bool __result)
             {
-                if (____campaignBattleResult == null 
-                    || !____campaignBattleResult.PlayerVictory 
-                    || !____campaignBattleResult.BattleResolved) 
-                    return true;
-
-                __result = false;
-                return false;
+                if (____campaignBattleResult != null 
+                    && ____campaignBattleResult.PlayerVictory 
+                    && ____campaignBattleResult.BattleResolved)
+                {
+                    __result = false;
+                    return false;
+                }
+                return true;
             }
         }
     }

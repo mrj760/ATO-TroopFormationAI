@@ -1,7 +1,7 @@
 ﻿using HarmonyLib;
 using RBMAI;
 using System;
-using RBMAI.AiModule.SiegeArcherPoints;
+using RBMAI.AiModule.RbmSieges;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.Core;
 using TaleWorlds.InputSystem;
@@ -9,6 +9,7 @@ using TaleWorlds.Library;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.MountAndBlade.View.Screens;
 using TaleWorlds.ScreenSystem;
+using static RBMAI.AiModule.RbmSieges.SiegeArcherPoints;
 
 namespace RBM
 {
@@ -27,14 +28,15 @@ namespace RBM
         {
             UnpatchAllRBM();
             HarmonyModules.rbmHarmony.PatchAll();
+            HarmonyModules.rbmaiHarmony.PatchAll();
 
-            RBMAiPatcher.FirstPatch(ref HarmonyModules.rbmaiHarmony);
+            RBMAIPatcher.FirstPatch(ref HarmonyModules.rbmaiHarmony);
 
         }
 
         public static void UnpatchAllRBM()
         {
-            RBMAiPatcher.patched = false;
+            RBMAIPatcher.patched = false;
             HarmonyModules.rbmHarmony.UnpatchAll(HarmonyModules.rbmHarmony.Id);
             HarmonyModules.rbmaiHarmony.UnpatchAll(HarmonyModules.rbmaiHarmony.Id);
         }
@@ -42,6 +44,7 @@ namespace RBM
         protected override void OnSubModuleLoad()
         {
             RBMConfig.RBMConfig.LoadConfig();
+            ApplyHarmonyPatches();
             base.OnSubModuleLoad();
         }
 
@@ -53,10 +56,10 @@ namespace RBM
             }
             try
             {
-                if (ScreenManager.TopScreen != null 
-                    && (Mission.Current.IsFieldBattle 
-                        || Mission.Current.IsSiegeBattle 
-                        || Mission.Current.SceneName.Contains("arena") 
+                if (ScreenManager.TopScreen != null
+                    && (Mission.Current.IsFieldBattle
+                        || Mission.Current.IsSiegeBattle
+                        || Mission.Current.SceneName.Contains("arena")
                         || (MapEvent.PlayerMapEvent != null && MapEvent.PlayerMapEvent.IsHideoutBattle)))
                 {
                     var missionScreen = ScreenManager.TopScreen as MissionScreen;
@@ -74,10 +77,10 @@ namespace RBM
             }
         }
 
-        protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
-        {
-            ApplyHarmonyPatches();
-        }
+        //protected override void OnGameStart(Game game, IGameStarter gameStarterObject)
+        //{
+        //    //ApplyHarmonyPatches();
+        //}
 
         public override void OnMissionBehaviorInitialize(Mission mission)
         {

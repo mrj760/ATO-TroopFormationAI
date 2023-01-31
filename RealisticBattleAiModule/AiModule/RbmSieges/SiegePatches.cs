@@ -89,8 +89,8 @@ namespace RBMAI.AiModule
             static bool PrefixGetAiWeight(ref BehaviorUseSiegeMachines __instance, ref float __result, ref TeamAISiegeComponent ____teamAISiegeComponent, List<UsableMachine> ____primarySiegeWeapons)
             {
                 var result = 0f;
-                if (____teamAISiegeComponent != null 
-                    && ____primarySiegeWeapons.Any() 
+                if (____teamAISiegeComponent != null
+                    && ____primarySiegeWeapons.Any()
                     && ____primarySiegeWeapons.All((UsableMachine psw) => !((IPrimarySiegeWeapon)psw).HasCompletedAction()))
                 {
                     result = (____teamAISiegeComponent.IsCastleBreached() ? 0.75f : 1.5f);
@@ -166,18 +166,18 @@ namespace RBMAI.AiModule
 
             [HarmonyPrefix]
             [HarmonyPatch("CalculateCurrentOrder")]
-            static bool PrefixCalculateCurrentOrder(ref BehaviorDefendCastleKeyPosition __instance, ref FacingOrder ____waitFacingOrder, 
-                ref FacingOrder ____readyFacingOrder, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder, 
-                FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate, 
-                ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos, 
+            static bool PrefixCalculateCurrentOrder(ref BehaviorDefendCastleKeyPosition __instance, ref FacingOrder ____waitFacingOrder,
+                ref FacingOrder ____readyFacingOrder, ref TeamAISiegeComponent ____teamAISiegeDefender, ref FacingOrder ___CurrentFacingOrder,
+                FormationAI.BehaviorSide ____behaviorSide, ref List<SiegeLadder> ____laddersOnThisSide, ref CastleGate ____innerGate,
+                ref CastleGate ____outerGate, ref TacticalPosition ____tacticalMiddlePos, ref TacticalPosition ____tacticalWaitPos,
                 ref MovementOrder ____waitOrder, ref MovementOrder ____readyOrder, ref MovementOrder ____currentOrder, ref BehaviorState ____behaviorState)
             {
                 ____behaviorSide = __instance.Formation.AI.Side;
                 ____innerGate = null;
                 ____outerGate = null;
                 ____laddersOnThisSide.Clear();
-                var num = 
-                    Mission.Current.ActiveMissionObjects.FindAllWithType<CastleGate>().Any((CastleGate cg) 
+                var num =
+                    Mission.Current.ActiveMissionObjects.FindAllWithType<CastleGate>().Any((CastleGate cg)
                         => cg.DefenseSide == ____behaviorSide && cg.GameEntity.HasTag("outer_gate"));
 
                 var worldFrame = new WorldFrame();
@@ -208,13 +208,13 @@ namespace RBMAI.AiModule
                     }
                     else
                     {
-                        var source = 
-                            from sw 
+                        var source =
+                            from sw
                                 in Mission.Current.ActiveMissionObjects.FindAllWithType<SiegeWeapon>()
-                                     where sw is IPrimarySiegeWeapon 
-                                           && ((IPrimarySiegeWeapon)sw).WeaponSide == ____behaviorSide 
-                                           && (!sw.IsDestroyed)
-                                     select sw;
+                            where sw is IPrimarySiegeWeapon
+                                  && ((IPrimarySiegeWeapon)sw).WeaponSide == ____behaviorSide
+                                  && (!sw.IsDestroyed)
+                            select sw;
 
                         var siegeWeapons = source.ToArray();
 
@@ -291,8 +291,8 @@ namespace RBMAI.AiModule
                      && TeamAISiegeComponent.IsFormationInsideCastle(
                          __instance.Formation.QuerySystem.ClosestEnemyFormation.Formation, includeOnlyPositionedUnits: true)
                         ? FacingOrder.FacingOrderLookAtEnemy
-                        : ____behaviorState == BehaviorState.Ready ? 
-                            ____readyFacingOrder : 
+                        : ____behaviorState == BehaviorState.Ready ?
+                            ____readyFacingOrder :
                             ____waitFacingOrder);
 
                 ____laddersOnThisSide.Clear();
@@ -348,8 +348,8 @@ namespace RBMAI.AiModule
                             var position = ____tacticalMiddlePos.Position;
                             if (____behaviorState == BehaviorState.Ready)
                             {
-                                var direction = 
-                                    (____innerGate.GetPosition().AsVec2 
+                                var direction =
+                                    (____innerGate.GetPosition().AsVec2
                                      - __instance.Formation.QuerySystem.MedianPosition.AsVec2).Normalized();
 
                                 var newPosition = position;
@@ -406,7 +406,7 @@ namespace RBMAI.AiModule
 
             [HarmonyPostfix]
             [HarmonyPatch("Initialize")]
-            static void PostfixInitialize(ref float ____arcAngle, ref int ____maxUserCount, ref float ____agentSpacing, 
+            static void PostfixInitialize(ref float ____arcAngle, ref int ____maxUserCount, ref float ____agentSpacing,
                 ref float ____queueBeginDistance, ref float ____queueRowSize)
             {
                 if (____maxUserCount == 3)
@@ -424,7 +424,7 @@ namespace RBMAI.AiModule
 
             }
         }
-        
+
         [HarmonyPatch(typeof(AgentMoraleInteractionLogic))]
         class AgentMoraleInteractionLogicPatch
         {
@@ -437,7 +437,7 @@ namespace RBMAI.AiModule
                 return !Mission.Current.IsSiegeBattle || !affectedAgent.Team.IsDefender;
             }
         }
-        
+
         [HarmonyPatch(typeof(TacticDefendCastle))]
         class StopUsingStrategicAreasPatch
         {

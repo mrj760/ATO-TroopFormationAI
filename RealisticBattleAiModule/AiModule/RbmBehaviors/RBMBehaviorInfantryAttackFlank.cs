@@ -1,25 +1,43 @@
-﻿using TaleWorlds.Core;
+﻿using System;
+using System.Linq;
+using TaleWorlds.Core;
+using TaleWorlds.Engine;
 using TaleWorlds.Library;
 using TaleWorlds.Localization;
 using TaleWorlds.MountAndBlade;
 
 namespace RBMAI.AiModule.RbmBehaviors
 {
-    internal class RBMBehaviorInfantryAttackFlank : BehaviorComponent
+    class RBMBehaviorInfantryAttackFlank : BehaviorComponent
     {
-        private bool _isEnemyReachable = true;
+        private Formation _mainFormation;
+
         private FlankMode flankMode;
-        
+
+        //private Timer returnTimer = null;
+        //private Timer feintTimer = null;
+        //private Timer attackTimer = null;
 
         public FormationAI.BehaviorSide FlankSide = FormationAI.BehaviorSide.Middle;
+
+        private float mobilityModifier = 1.25f;
+        private enum FlankMode
+        {
+            Flank,
+            Feint,
+            Attack
+        }
+
+        private bool _isEnemyReachable = true;
 
         public RBMBehaviorInfantryAttackFlank(Formation formation)
             : base(formation)
         {
+            this._mainFormation = formation.Team.Formations.FirstOrDefault<Formation>((Func<Formation, bool>) (f => f.AI.IsMainFormation));
             flankMode = FlankMode.Flank;
             _behaviorSide = formation.AI.Side;
             CalculateCurrentOrder();
-            BehaviorCoherence = 0.5f;
+            base.BehaviorCoherence = 0.5f;
         }
 
         protected override float GetAiWeight()
@@ -30,104 +48,179 @@ namespace RBMAI.AiModule.RbmBehaviors
         protected override void OnBehaviorActivatedAux()
         {
             CalculateCurrentOrder();
-            Formation.SetMovementOrder(CurrentOrder);
-            Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLoose;
-            Formation.FacingOrder = FacingOrder.FacingOrderLookAtEnemy;
-            Formation.FiringOrder = FiringOrder.FiringOrderFireAtWill;
-            Formation.FormOrder = FormOrder.FormOrderDeep;
-            Formation.WeaponUsageOrder = WeaponUsageOrder.WeaponUsageOrderUseAny;
+            base.Formation.SetMovementOrder(base.CurrentOrder);
+            base.Formation.ArrangementOrder = ArrangementOrder.ArrangementOrderLoose;
+            base.Formation.FacingOrder = FacingOrder.FacingOrderLookAtEnemy;
+            base.Formation.FiringOrder = FiringOrder.FiringOrderFireAtWill;
+            base.Formation.FormOrder = FormOrder.FormOrderDeep;
+            base.Formation.WeaponUsageOrder = WeaponUsageOrder.WeaponUsageOrderUseAny;
         }
 
-        protected sealed override void CalculateCurrentOrder()
+        protected override void CalculateCurrentOrder()
         {
-            var fqs = Formation.QuerySystem;
-            var fqsSigEnemy = fqs.ClosestSignificantlyLargeEnemyFormation;
-            var position = fqs.MedianPosition;
-            _isEnemyReachable = fqsSigEnemy != null 
-                                && (!(Formation.Team.TeamAI is TeamAISiegeComponent) || !TeamAISiegeComponent.IsFormationInsideCastle(fqsSigEnemy.Formation, false));
-            var averagePosition = fqs.AveragePosition;
+            WorldPosition position = base.Formation.QuerySystem.MedianPosition;
+            _isEnemyReachable = base.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation != null && (!(base.Formation.Team.TeamAI is TeamAISiegeComponent) || !TeamAISiegeComponent.IsFormationInsideCastle(base.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation, includeOnlyPositionedUnits: false));
+            Vec2 averagePosition = base.Formation.QuerySystem.AveragePosition;
 
             if (!_isEnemyReachable)
             {
                 position.SetVec2(averagePosition);
-                return;
             }
-
-            const float flankRange = 45f;
-            var enemyFormation = fqsSigEnemy?.Formation;
-
-            if (Formation != null && fqs.IsInfantryFormation)
-                enemyFormation = Utilities.FindSignificantEnemyToPosition(Formation, position, true, true, false, false, false, false);
-
-            if (enemyFormation == null)
+            else
             {
-                CurrentOrder = MovementOrder.MovementOrderStop;
-                return;
-            }
+                float flankRange = 45f;
+                float feintRange = 30f;
 
-            var averageAllyFormationPosition = fqs.Team.AveragePosition;
-            var medianTargetFormationPosition = fqs.Team.MedianTargetFormationPosition;
-            var enemyDirection = (medianTargetFormationPosition.AsVec2 - averageAllyFormationPosition).Normalized();
+                Formation enemyFormation = base.Formation.QuerySystem.ClosestSignificantlyLargeEnemyFormation.Formation;
+                Formation allyFormation = RBMAI.Utilities.FindSignificantAlly(base.Formation, true, true, false, false, false);
 
-            switch (flankMode)
-            {
-                case FlankMode.Flank:
+                if (base.Formation != null && base.Formation.QuerySystem.IsInfantryFormation)
+                {
+                    enemyFormation = RBMAI.Utilities.FindSignificantEnemyToPosition(base.Formation, position, true, true, false, false, false, false);
+                }
 
-                    if (averagePosition.Distance(enemyFormation.QuerySystem.AveragePosition) < flankRange)
-                        flankMode = FlankMode.Attack;
-
-                    Vec2 calcPosition;
-
-                    if (_behaviorSide == FormationAI.BehaviorSide.Right || FlankSide == FormationAI.BehaviorSide.Right)
-                    {
-                        calcPosition = enemyFormation.CurrentPosition 
-                                       + enemyDirection.RightVec().Normalized() 
-                                       * (enemyFormation.Width * 0.5f + flankRange);
-                        position.SetVec2(calcPosition);
-                    }
-                    else if (_behaviorSide == FormationAI.BehaviorSide.Left || FlankSide == FormationAI.BehaviorSide.Left)
-                    {
-                        calcPosition = enemyFormation.CurrentPosition 
-                                       + enemyDirection.LeftVec().Normalized() 
-                                       * (enemyFormation.Width * 0.5f + flankRange);
-                        position.SetVec2(calcPosition);
-                    }
-                    else
-                    {
-                        position = enemyFormation.QuerySystem.MedianPosition;
-                    }
-
-                    break;
-
-                case FlankMode.Attack:
-
-                    CurrentOrder = MovementOrder.MovementOrderChargeToTarget(enemyFormation);
+                if (enemyFormation == null)
+                {
+                    base.CurrentOrder = MovementOrder.MovementOrderStop;
                     return;
+                }
+
+                Vec2 averageAllyFormationPosition = base.Formation.QuerySystem.Team.AveragePosition;
+                WorldPosition medianTargetFormationPosition = base.Formation.QuerySystem.Team.MedianTargetFormationPosition;
+                Vec2 enemyDirection = (medianTargetFormationPosition.AsVec2 - averageAllyFormationPosition).Normalized();
+
+                switch (flankMode)
+                {
+                    case FlankMode.Flank:
+                        {
+                            if (averagePosition.Distance(enemyFormation.QuerySystem.AveragePosition) < flankRange)
+                            {
+                                flankMode = FlankMode.Attack;
+                            }
+                            //if (averagePosition.Distance(base.Formation.OrderPosition) < 5f)
+                            //{
+                            //	flankMode = FlankMode.Attack;
+                            //}
+
+                            if (_behaviorSide == FormationAI.BehaviorSide.Right || FlankSide == FormationAI.BehaviorSide.Right)
+                            {
+                                if (enemyFormation != null)
+                                {
+                                    Vec2 calcPosition = enemyFormation.CurrentPosition + enemyDirection.RightVec().Normalized() * (enemyFormation.Width * 0.5f + flankRange);
+                                    position.SetVec2(calcPosition);
+                                }
+                                else
+                                {
+                                    position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 140f);
+                                }
+                            }
+                            else if (_behaviorSide == FormationAI.BehaviorSide.Left || FlankSide == FormationAI.BehaviorSide.Left)
+                            {
+                                if (enemyFormation != null)
+                                {
+                                    Vec2 calcPosition = enemyFormation.CurrentPosition + enemyDirection.LeftVec().Normalized() * (enemyFormation.Width * 0.5f + flankRange);
+                                    position.SetVec2(calcPosition);
+                                }
+                                else
+                                {
+                                    position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 140f);
+                                }
+                            }
+                            else
+                            {
+                                if (enemyFormation != null)
+                                {
+                                    position = enemyFormation.QuerySystem.MedianPosition;
+                                }
+                                else
+                                {
+                                    position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 140f);
+                                }
+                            }
+                            break;
+                        }
+                    //case FlankMode.Feint:
+                    //	{
+                    //		attackTimer = null;
+                    //		if (returnTimer == null)
+                    //		{
+                    //			returnTimer = new Timer(Mission.Current.CurrentTime, 10f/ mobilityModifier);
+                    //		}
+                    //		if (returnTimer != null && returnTimer.Check(Mission.Current.CurrentTime))
+                    //		{
+                    //				flankMode = FlankMode.Flank;
+                    //		}
+
+                    //		if (behaviorSide == FormationAI.BehaviorSide.Right || FlankSide == FormationAI.BehaviorSide.Right)
+                    //		{
+                    //			if (allyFormation != null)
+                    //			{
+                    //				Vec2 calcPosition = allyFormation.CurrentPosition + enemyDirection.RightVec().Normalized() * (allyFormation.Width + base.Formation.Width + flankRange);
+                    //				position.SetVec2(calcPosition);
+                    //			}
+                    //			else
+                    //                           {
+                    //				position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 150f);
+                    //			}
+                    //		}
+                    //		else if (behaviorSide == FormationAI.BehaviorSide.Left || FlankSide == FormationAI.BehaviorSide.Left)
+                    //		{
+                    //			if (allyFormation != null)
+                    //			{
+                    //				Vec2 calcPosition = allyFormation.CurrentPosition + enemyDirection.LeftVec().Normalized() * (allyFormation.Width + base.Formation.Width + flankRange);
+                    //				position.SetVec2(calcPosition);
+                    //			}
+                    //			else
+                    //			{
+                    //				position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 150f);
+                    //			}
+                    //		}
+                    //		else
+                    //		{
+                    //			if (allyFormation != null)
+                    //			{
+                    //				position = allyFormation.QuerySystem.MedianPosition;
+
+                    //			}
+                    //			else
+                    //			{
+                    //				position.SetVec2(medianTargetFormationPosition.AsVec2 + enemyDirection.Normalized() * 150f);
+                    //			}
+                    //		}
+
+                    //		break;
+                    //	}
+                    case FlankMode.Attack:
+                        {
+                            if (enemyFormation != null)
+                            {
+                                base.CurrentOrder = MovementOrder.MovementOrderChargeToTarget(enemyFormation);
+                                return;
+                            }
+                            break;
+                        }
+                }
+                CurrentFacingOrder = FacingOrder.FacingOrderLookAtDirection(enemyDirection);
             }
-
-            CurrentFacingOrder = FacingOrder.FacingOrderLookAtDirection(enemyDirection);
-
             CurrentOrder = MovementOrder.MovementOrderMove(position);
         }
 
         public override void TickOccasionally()
         {
             CalculateCurrentOrder();
-            Formation.SetMovementOrder(CurrentOrder);
+            Formation.SetMovementOrder(base.CurrentOrder);
             Formation.FacingOrder = CurrentFacingOrder;
         }
 
         public override TextObject GetBehaviorString()
         {
-            var name = GetType().Name;
-            return GameTexts.FindText("str_formation_ai_sergeant_instruction_behavior_text", name);
-        }
-
-        private enum FlankMode
-        {
-            Flank,
-            Feint,
-            Attack
+            TextObject behaviorString = new TextObject("Infantry Flank");
+            if (_mainFormation != null)
+            {
+                behaviorString.SetTextVariable("AI_SIDE", GameTexts.FindText("str_formation_ai_side_strings", _mainFormation.AI.Side.ToString()));
+                behaviorString.SetTextVariable("CLASS", GameTexts.FindText("str_formation_class_string", _mainFormation.PrimaryClass.GetName()));
+            }
+            return behaviorString;
         }
     }
 }
