@@ -25,7 +25,7 @@ namespace RBM
 
         //public static void RBMAiFirstPatch(Harmony rbmaiHarmony)
         //{
-        //    RBMAiPatcher.patched = false;
+        //    RBMAIPatcher.patched = false;
         //    var original = AccessTools.Method(typeof(MissionCombatantsLogic), "EarlyStart");
         //    var postfix = AccessTools.Method(typeof(Tactics.TeamAiFieldBattle), nameof(Tactics.TeamAiFieldBattle.Postfix));
         //    rbmaiHarmony.Patch(original, null, new HarmonyMethod(postfix));
@@ -53,16 +53,15 @@ namespace RBM
             //HarmonyModules.rbmtHarmony.UnpatchAll(HarmonyModules.rbmtHarmony.Id);
 
             //}
-            //if (RBMConfig.RBMConfig.rbmAiEnabled)
-            //{
+            if (RBMConfig.RBMConfig.rbmAiEnabled)
+            {
 
-            RBMAiPatcher.FirstPatch(ref HarmonyModules.rbmaiHarmony);
-
-            //}
-            //else
-            //{
-            //    HarmonyModules.rbmaiHarmony.UnpatchAll(HarmonyModules.rbmaiHarmony.Id);
-            //}
+                RBMAIPatcher.FirstPatch(ref HarmonyModules.rbmaiHarmony);
+            }
+            else
+            {
+                HarmonyModules.rbmaiHarmony.UnpatchAll(HarmonyModules.rbmaiHarmony.Id);
+            }
             //if (RBMConfig.RBMConfig.rbmCombatEnabled)
             //{
             //    //string xmlFileName = Path.Combine(assemblyFolder, "RBMCombat.dll");
@@ -77,7 +76,7 @@ namespace RBM
 
         public static void UnpatchAllRBM()
         {
-            RBMAiPatcher.patched = false;
+            RBMAIPatcher.patched = false;
             HarmonyModules.rbmHarmony.UnpatchAll(HarmonyModules.rbmHarmony.Id);
             //HarmonyModules.rbmtHarmony.UnpatchAll(HarmonyModules.rbmtHarmony.Id);
             HarmonyModules.rbmaiHarmony.UnpatchAll(HarmonyModules.rbmaiHarmony.Id);
@@ -88,7 +87,7 @@ namespace RBM
         {
             RBMConfig.RBMConfig.LoadConfig();
             base.OnSubModuleLoad();
-            //ApplyHarmonyPatches();
+            ApplyHarmonyPatches();
 
             //TaleWorlds.MountAndBlade.Module.CurrentModule.AddInitialStateOption(new InitialStateOption("RbmConfiguration", new TextObject("RBM Configuration"), 9999, delegate
             //{

@@ -325,7 +325,7 @@ namespace RBMAI
         {
             public static void Postfix()
             {
-                RBMAiPatcher.DoPatching();
+                RBMAIPatcher.DoPatching();
                 agentDamage.Clear();
             }
         }
@@ -368,65 +368,68 @@ namespace RBMAI
             {
                 aiDecisionCooldownDict.Clear();
                 agentDamage.Clear();
-                RBMAiPatcher.DoPatching();
+                RBMAIPatcher.DoPatching();
                 OnTickAsAIPatch.itemPickupDistanceStorage.Clear();
-                if (Mission.Current.Teams.Any())
-                    if (Mission.Current.MissionTeamAIType == Mission.MissionTeamAITypeEnum.FieldBattle)
-                        foreach (var team in Mission.Current.Teams.Where(t => t.HasTeamAi).ToList())
+
+                if (!Mission.Current.Teams.Any() ||
+                    Mission.Current.MissionTeamAIType != Mission.MissionTeamAITypeEnum.FieldBattle) 
+                    return;
+
+                foreach (var team in Mission.Current.Teams.Where(t => t.HasTeamAi).ToList())
+                {
+                    if (team.Side == BattleSideEnum.Attacker)
+                    {
+                        team.ClearTacticOptions();
+                        if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Empire)
                         {
-                            if (team.Side == BattleSideEnum.Attacker)
-                            {
-                                team.ClearTacticOptions();
-                                if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Empire)
-                                {
-                                    team.AddTacticOption(new RBMTacticEmbolon(team));
-                                }
-
-                                //team.AddTacticOption(new TacticFrontalCavalryCharge(team));
-                                if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Aserai ||
-                                    ____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Darshi) team.AddTacticOption(new RBMTacticAttackSplitSkirmishers(team));
-                                if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Sturgia ||
-                                    ____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Nord) team.AddTacticOption(new RBMTacticAttackSplitInfantry(team));
-                                if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Battania) team.AddTacticOption(new RBMTacticAttackSplitArchers(team));
-                                //if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() != CultureCode.Vlandia)
-                                //{
-                                //    team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
-                                //}
-                                team.AddTacticOption(new TacticFullScaleAttack(team));
-                                //team.AddTacticOption(new RBMTacticEmbolon(team));
-                                team.AddTacticOption(new TacticCoordinatedRetreat(team));
-                                //team.AddTacticOption(new TacticCharge(team));
-                                //team.AddTacticOption(new RBMTacticAttackSplitSkirmishers(team));
-                                //team.AddTacticOption(new RBMTacticAttackSplitInfantry(team));
-                            }
-
-                            if (team.Side == BattleSideEnum.Defender)
-                            {
-                                team.ClearTacticOptions();
-                                if (____defenderLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Battania) team.AddTacticOption(new RBMTacticDefendSplitArchers(team));
-                                team.AddTacticOption(new TacticDefensiveEngagement(team));
-                                team.AddTacticOption(new TacticDefensiveLine(team));
-                                if (____defenderLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
-                                    CultureCode.Sturgia) team.AddTacticOption(new RBMTacticDefendSplitInfantry(team));
-                                team.AddTacticOption(new TacticFullScaleAttack(team));
-                                //team.AddTacticOption(new TacticCharge(team));
-                                //team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
-                                //team.AddTacticOption(new TacticHoldChokePoint(team));
-                                //team.AddTacticOption(new TacticHoldTheHill(team));
-                                //team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
-                                team.AddTacticOption(new TacticCoordinatedRetreat(team));
-                                //team.AddTacticOption(new TacticFrontalCavalryCharge(team));
-                                //team.AddTacticOption(new TacticDefensiveRing(team));
-                                //team.AddTacticOption(new TacticArchersOnTheHill(team));
-                            }
+                            team.AddTacticOption(new RBMTacticEmbolon(team));
                         }
+
+                        //team.AddTacticOption(new TacticFrontalCavalryCharge(team));
+                        if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Aserai ||
+                            ____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Darshi) team.AddTacticOption(new RBMTacticAttackSplitSkirmishers(team));
+                        if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Sturgia ||
+                            ____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Nord) team.AddTacticOption(new RBMTacticAttackSplitInfantry(team));
+                        if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Battania) team.AddTacticOption(new RBMTacticAttackSplitArchers(team));
+                        //if (____attackerLeaderBattleCombatant?.BasicCulture?.GetCultureCode() != CultureCode.Vlandia)
+                        //{
+                        //    team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
+                        //}
+                        team.AddTacticOption(new TacticFullScaleAttack(team));
+                        //team.AddTacticOption(new RBMTacticEmbolon(team));
+                        team.AddTacticOption(new TacticCoordinatedRetreat(team));
+                        //team.AddTacticOption(new TacticCharge(team));
+                        //team.AddTacticOption(new RBMTacticAttackSplitSkirmishers(team));
+                        //team.AddTacticOption(new RBMTacticAttackSplitInfantry(team));
+                    }
+
+                    if (team.Side == BattleSideEnum.Defender)
+                    {
+                        team.ClearTacticOptions();
+                        if (____defenderLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Battania) team.AddTacticOption(new RBMTacticDefendSplitArchers(team));
+                        team.AddTacticOption(new TacticDefensiveEngagement(team));
+                        team.AddTacticOption(new TacticDefensiveLine(team));
+                        if (____defenderLeaderBattleCombatant?.BasicCulture?.GetCultureCode() ==
+                            CultureCode.Sturgia) team.AddTacticOption(new RBMTacticDefendSplitInfantry(team));
+                        team.AddTacticOption(new TacticFullScaleAttack(team));
+                        //team.AddTacticOption(new TacticCharge(team));
+                        //team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
+                        //team.AddTacticOption(new TacticHoldChokePoint(team));
+                        //team.AddTacticOption(new TacticHoldTheHill(team));
+                        //team.AddTacticOption(new TacticRangedHarrassmentOffensive(team));
+                        team.AddTacticOption(new TacticCoordinatedRetreat(team));
+                        //team.AddTacticOption(new TacticFrontalCavalryCharge(team));
+                        //team.AddTacticOption(new TacticDefensiveRing(team));
+                        //team.AddTacticOption(new TacticArchersOnTheHill(team));
+                    }
+                }
             }
         }
 
